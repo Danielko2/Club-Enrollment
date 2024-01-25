@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "../config/firebase-config";
-
+import { onSnapshot } from "firebase/firestore";
 export const useClubDetails = (clubId) => {
   const [club, setClub] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -9,10 +9,10 @@ export const useClubDetails = (clubId) => {
   const [memberNicknames, setMemberNicknames] = useState([]);
 
   // Function to fetch member nicknames based on UIDs
-  const fetchMemberNicknames = async (memberUids) => {
+  const fetchMemberNicknames = async (members) => {
     const nicknames = await Promise.all(
-      memberUids.map(async (uid) => {
-        const userRef = doc(db, "users", uid);
+      members.map(async (member) => {
+        const userRef = doc(db, "users", member.uid);
         const userSnap = await getDoc(userRef);
         return userSnap.exists() ? userSnap.data().nickname : null;
       })
@@ -50,40 +50,41 @@ export const useClubDetails = (clubId) => {
       return;
     }
 
-    const fetchClubDetails = async () => {
-      setLoading(true);
-      try {
-        const clubRef = doc(db, "clubs", clubId);
-        const clubSnapshot = await getDoc(clubRef);
-        if (clubSnapshot.exists()) {
-          const data = clubSnapshot.data();
-          const adminNicknamesArray = Array.isArray(data.adminNickname)
-            ? data.adminNickname
-            : data.adminNickname
-            ? [data.adminNickname] // Make sure this is not undefined or null
-            : []; // Default to an empty array if adminNickname is not present
-          data.adminNicknames = adminNicknamesArray; // Add adminNicknames to the club data
+    const unsubscribe = onSnapshot(
+      doc(db, "clubs", clubId),
+      (docSnapshot) => {
+        if (docSnapshot.exists) {
+          const data = docSnapshot.data();
           setClub(data);
-          console.log(data);
-          // Fetch member nicknames if members array exists
-          if (data.members) {
-            const memberNicknamesArray = await fetchMemberNicknames(
-              data.members
+
+          // Extract and set the adminNicknames
+          const adminNicknames = Array.isArray(data.adminNickname)
+            ? data.adminNickname
+            : [data.adminNickname].filter(Boolean);
+          data.adminNicknames = adminNicknames;
+
+          // Fetch and set the memberNicknames if members exist
+          if (data.members && Array.isArray(data.members)) {
+            const memberNicknamesArray = data.members.map(
+              (member) => member.nickname
             );
             setMemberNicknames(memberNicknamesArray);
           }
+          setLoading(false);
         } else {
           setError("Club does not exist");
+          setLoading(false);
         }
-      } catch (err) {
-        setError("Failed to fetch club details");
+      },
+      (err) => {
         console.error(err);
-      } finally {
+        setError("Failed to fetch club details");
         setLoading(false);
       }
-    };
+    );
 
-    fetchClubDetails();
+    // Cleanup listener on component unmount
+    return () => unsubscribe();
   }, [clubId]);
 
   return { club, loading, error, memberNicknames };
