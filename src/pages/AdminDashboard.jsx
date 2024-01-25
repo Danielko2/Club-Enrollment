@@ -39,46 +39,46 @@ const MemberList = ({ members, onDeleteMember }) => (
 );
 
 //toggle for join method
-const JoinMethodToggle = ({
-  selectedMethod,
-  currentMethod,
-  onMethodChange,
-  onSave,
-}) => (
-  <div className="my-4">
-    <div className="flex items-center mb-2">
-      <label className="flex items-center mr-4">
-        <input
-          type="radio"
-          name="joinMethod"
-          value="open"
-          checked={selectedMethod === "open"}
-          onChange={() => onMethodChange("open")}
-          className="mr-2"
-        />
-        Open to All
-      </label>
-      <label className="flex items-center">
-        <input
-          type="radio"
-          name="joinMethod"
-          value="approval"
-          checked={selectedMethod === "approval"}
-          onChange={() => onMethodChange("approval")}
-          className="mr-2"
-        />
-        Approval Needed
-      </label>
-    </div>
-    <div className="text-sm text-gray-600">Current method: {currentMethod}</div>
-    <button
-      onClick={onSave}
-      className="mt-2 bg-blue-500 text-white p-2 rounded hover:bg-blue-600"
-    >
-      Save Changes
-    </button>
-  </div>
-);
+// const JoinMethodToggle = ({
+//   selectedMethod,
+//   currentMethod,
+//   onMethodChange,
+//   onSave,
+// }) => (
+//   <div className="my-4">
+//     <div className="flex items-center mb-2">
+//       <label className="flex items-center mr-4">
+//         <input
+//           type="radio"
+//           name="joinMethod"
+//           value="open"
+//           checked={selectedMethod === "open"}
+//           onChange={() => onMethodChange("open")}
+//           className="mr-2"
+//         />
+//         Open to All
+//       </label>
+//       <label className="flex items-center">
+//         <input
+//           type="radio"
+//           name="joinMethod"
+//           value="approval"
+//           checked={selectedMethod === "approval"}
+//           onChange={() => onMethodChange("approval")}
+//           className="mr-2"
+//         />
+//         Approval Needed
+//       </label>
+//     </div>
+//     <div className="text-sm text-gray-600">Current method: {currentMethod}</div>
+//     <button
+//       onClick={onSave}
+//       className="mt-2 bg-blue-500 text-white p-2 rounded hover:bg-blue-600"
+//     >
+//       Save Changes
+//     </button>
+//   </div>
+// );
 const AdminDashboardPage = () => {
   const { clubId } = useParams();
   const { club, loading, error, memberNicknames, re } = useClubDetails(clubId);
@@ -158,12 +158,12 @@ const AdminDashboardPage = () => {
         <ClubHeader clubName={club.name} className="text-3xl font-bold mb-4" />
       )}
       <UpdateClubForm clubDetails={club} onUpdate={handleUpdateClubDetails} />
-      <JoinMethodToggle
+      {/* <JoinMethodToggle
         selectedMethod={selectedJoinMethod}
         currentMethod={currentJoinMethod}
         onMethodChange={handleJoinMethodChange}
         onSave={handleSaveJoinMethod}
-      />
+      /> */}
       {adminNicknames.length > 0 && (
         <>
           <h3 className="text-xl font-semibold mt-6">Admins:</h3>
