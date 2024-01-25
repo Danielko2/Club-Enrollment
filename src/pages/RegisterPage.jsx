@@ -14,7 +14,8 @@ import {
   setDoc,
   doc,
 } from "firebase/firestore";
-import { useAuth } from "../hooks/AuthContext";
+import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
+import { getAuth } from "firebase/auth";
 const RegisterLoginPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -30,6 +31,16 @@ const RegisterLoginPage = () => {
     setMessage("");
   };
 
+  const signInWithGoogle = async () => {
+    const provider = new GoogleAuthProvider();
+    try {
+      const result = await signInWithPopup(auth, provider);
+      // You can handle the result further, like navigating to another page or setting user context
+      navigate("/clubs");
+    } catch (error) {
+      setMessage(error.message);
+    }
+  };
   const nicknameExists = async (nickname) => {
     const nicknamesRef = collection(db, "users");
     const q = query(nicknamesRef, where("nickname", "==", nickname));
@@ -139,6 +150,12 @@ const RegisterLoginPage = () => {
           {isRegistering
             ? "Already have an account? Login"
             : "Need an account? Register"}
+        </button>
+        <button
+          onClick={signInWithGoogle}
+          className="p-2 bg-red-500 text-white rounded hover:bg-red-600"
+        >
+          Sign in with Google
         </button>
       </div>
     </div>

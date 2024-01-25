@@ -24,7 +24,6 @@ const ClubForm = ({ closeModal }) => {
     e.preventDefault();
     if (clubDetails.name.trim() === "") return;
 
-    // Fetch the user's nickname from Firestore
     try {
       const userDocRef = doc(db, "users", currentUser.uid);
       const userDocSnap = await getDoc(userDocRef);
@@ -34,21 +33,23 @@ const ClubForm = ({ closeModal }) => {
         return;
       }
 
-      // Here, you are getting the nickname from the user's document
       const userNickname = userDocSnap.data().nickname;
 
       const clubData = {
         ...clubDetails,
         adminNickname: userNickname, // Set the adminNickname to the user's nickname
+
+        joiningMethod: "open", // Set the joining method to 'open' by default
       };
 
       const docRef = await addDoc(collection(db, "clubs"), clubData);
-      closeModal(); // Close the modal on successful submission
-      navigate(`/club-dashboard/${docRef.id}`); // Navigate to the club dashboard
+      closeModal();
+      navigate(`/club-dashboard/${docRef.id}`);
     } catch (error) {
       console.error("Error adding club or fetching user nickname: ", error);
     }
   };
+
   return (
     <form onSubmit={handleSubmit} className="p-4 space-y-4">
       <input
