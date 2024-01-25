@@ -11,6 +11,7 @@ import {
   query,
   where,
   getDocs,
+  getDoc,
   setDoc,
   doc,
 } from "firebase/firestore";
@@ -23,7 +24,7 @@ const RegisterLoginPage = () => {
   const [message, setMessage] = useState("");
   const [nickname, setNickname] = useState("");
   const navigate = useNavigate();
-
+  const [needsNickname, setNeedsNickname] = useState(false); // New state for nickname prompt
   const resetFields = () => {
     setEmail("");
     setPassword("");
@@ -31,16 +32,40 @@ const RegisterLoginPage = () => {
     setMessage("");
   };
 
+  const checkUserDocument = async (user) => {
+    const userDocRef = doc(db, "users", user.uid);
+    const docSnap = await getDoc(userDocRef);
+    if (!docSnap.exists()) {
+      setNeedsNickname(true); // Prompt for nickname
+    } else {
+      navigate("/clubs"); // User already has a document, navigate to clubs
+    }
+  };
+
   const signInWithGoogle = async () => {
     const provider = new GoogleAuthProvider();
     try {
       const result = await signInWithPopup(auth, provider);
-      // You can handle the result further, like navigating to another page or setting user context
-      navigate("/clubs");
+      await checkUserDocument(result.user);
     } catch (error) {
       setMessage(error.message);
     }
   };
+  const handleNicknameSubmission = async () => {
+    const nicknameExistsResult = await nicknameExists(nickname);
+    if (nicknameExistsResult) {
+      setMessage("Nickname already exists. Please choose a different one.");
+      return;
+    }
+    const user = auth.currentUser;
+    await setDoc(doc(db, "users", user.uid), {
+      email: user.email,
+      nickname: nickname,
+    });
+    setNeedsNickname(false); // Close the nickname prompt
+    navigate("/clubs");
+  };
+
   const nicknameExists = async (nickname) => {
     const nicknamesRef = collection(db, "users");
     const q = query(nicknamesRef, where("nickname", "==", nickname));
@@ -102,62 +127,81 @@ const RegisterLoginPage = () => {
   };
   return (
     <div className="flex justify-center">
-      <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-sm">
-        <h2 className="text-2xl font-bold mb-2 text-center">
-          {isRegistering ? "Register" : "Login"}
-        </h2>
-        {message && <p className="text-red-500">{message}</p>}
-
-        <form onSubmit={handleSubmit} className="flex flex-col space-y-4">
-          {isRegistering && (
-            <input
-              className="p-2 border rounded"
-              type="text"
-              placeholder="Enter nickname"
-              value={nickname}
-              onChange={(e) => setNickname(e.target.value)}
-              required={isRegistering} // Only required during registration
-            />
-          )}
+      {needsNickname ? (
+        // Only render the nickname input and submit button
+        <div className="p-4 border rounded">
           <input
-            className="p-2 border rounded"
-            type="email"
-            placeholder="Enter email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-          <input
-            className="p-2 border rounded"
-            type="password"
-            placeholder="Enter password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
+            type="text"
+            placeholder="Enter nickname"
+            value={nickname}
+            onChange={(e) => setNickname(e.target.value)}
           />
           <button
-            type="submit"
             className="p-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+            onClick={handleNicknameSubmission}
           >
-            {isRegistering ? "Register" : "Login"}
+            Submit Nickname
           </button>
-        </form>
+          {message && <p className="text-red-500">{message}</p>}
+        </div>
+      ) : (
+        // Render the rest of the form only if `needsNickname` is false
+        <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-sm">
+          <h2 className="text-2xl font-bold mb-2 text-center">
+            {isRegistering ? "Register" : "Login"}
+          </h2>
+          {message && <p className="text-red-500">{message}</p>}
+          <form onSubmit={handleSubmit} className="flex flex-col space-y-4">
+            {isRegistering && (
+              <input
+                className="p-2 border rounded"
+                type="text"
+                placeholder="Enter nickname"
+                value={nickname}
+                onChange={(e) => setNickname(e.target.value)}
+                required={isRegistering}
+              />
+            )}
+            <input
+              className="p-2 border rounded"
+              type="email"
+              placeholder="Enter email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+            <input
+              className="p-2 border rounded"
+              type="password"
+              placeholder="Enter password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+            <button
+              type="submit"
+              className="p-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+            >
+              {isRegistering ? "Register" : "Login"}
+            </button>
+          </form>
+          <button
+            onClick={toggleForm}
+            className="mt-4 text-blue-500 hover:underline"
+          >
+            {isRegistering
+              ? "Already have an account? Login"
+              : "Need an account? Register"}
+          </button>
 
-        <button
-          onClick={toggleForm}
-          className="mt-4 text-blue-500 hover:underline"
-        >
-          {isRegistering
-            ? "Already have an account? Login"
-            : "Need an account? Register"}
-        </button>
-        <button
-          onClick={signInWithGoogle}
-          className="p-2 bg-red-500 text-white rounded hover:bg-red-600"
-        >
-          Sign in with Google
-        </button>
-      </div>
+          <button
+            onClick={signInWithGoogle}
+            className="p-2 bg-red-500 text-white rounded hover:bg-red-600"
+          >
+            Sign in with Google
+          </button>
+        </div>
+      )}
     </div>
   );
 };

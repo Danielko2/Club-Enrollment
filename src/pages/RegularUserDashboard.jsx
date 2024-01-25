@@ -73,6 +73,7 @@ const RegularUserDashboard = () => {
       });
       console.log("Joined club successfully");
       // refetchMemberList();
+      setHasJoined(true);
     } catch (error) {
       console.error("Error joining club:", error);
     }
@@ -85,17 +86,32 @@ const RegularUserDashboard = () => {
 
     const clubRef = doc(db, "clubs", clubId);
     try {
-      // Remove the current user's UID from the club's members array
+      // Find the member object for the current user
+      const clubSnap = await getDoc(clubRef);
+      if (!clubSnap.exists()) {
+        console.error("Club document does not exist!");
+        return;
+      }
+      const clubData = clubSnap.data();
+      const memberToRemove = clubData.members.find(
+        (member) => member.uid === currentUser.uid
+      );
+      if (!memberToRemove) {
+        console.error("Member not found in the club's member list!");
+        return;
+      }
+
+      // Remove the member object from the club's members array
       await updateDoc(clubRef, {
-        members: arrayRemove(currentUser.uid),
+        members: arrayRemove(memberToRemove),
       });
       setHasJoined(false); // Update local state to reflect the change
       console.log("Left club successfully");
-      // refetchMemberList();
     } catch (error) {
       console.error("Error leaving club:", error);
     }
   };
+
   if (loading) return <div className="text-center text-xl">Loading...</div>;
   if (error)
     return (

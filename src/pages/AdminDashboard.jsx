@@ -4,6 +4,7 @@ import { useClubDetails } from "../hooks/useClubDetails";
 import UpdateClubForm from "../components/UpdateClubForm";
 import { doc, updateDoc } from "firebase/firestore";
 import { db } from "../config/firebase-config";
+import { arrayRemove } from "firebase/firestore";
 const ClubHeader = ({ clubName }) => (
   <div className="text-xl font-bold">{clubName}</div>
 );
@@ -18,16 +19,16 @@ const AdminList = ({ adminNicknames }) => (
   </ul>
 );
 
-const MemberList = ({ memberNicknames }) => (
+const MemberList = ({ members, onDeleteMember }) => (
   <ul className="list-disc pl-5 my-4">
-    {memberNicknames.map((nickname, index) => (
+    {members.map((member, index) => (
       <li
         key={index}
         className="text-lg py-1 flex justify-between items-center"
       >
-        {nickname}
+        {member.nickname}
         <button
-          onClick={() => deleteMember(nickname)} // You need to pass the member's UID instead
+          onClick={() => onDeleteMember(member.nickname)}
           className="bg-red-500 text-white p-2 rounded"
         >
           Delete
@@ -36,6 +37,7 @@ const MemberList = ({ memberNicknames }) => (
     ))}
   </ul>
 );
+
 //toggle for join method
 const JoinMethodToggle = ({
   selectedMethod,
@@ -110,19 +112,8 @@ const AdminDashboardPage = () => {
   };
 
   // Function to delete a member from the club
-  const deleteMember = async (memberUid) => {
-    const clubRef = doc(db, "clubs", clubId);
-    try {
-      await updateDoc(clubRef, {
-        members: arrayRemove(memberUid),
-      });
-      console.log(`Member ${memberUid} removed successfully`);
-      // Refetch the member list to update the UI
-      await refetchMemberList();
-    } catch (error) {
-      console.error("Error removing member:", error);
-    }
-  };
+  // Function to delete a member from the club
+
   const handleJoinMethodChange = (method) => {
     setSelectedJoinMethod(method);
   };
@@ -134,6 +125,30 @@ const AdminDashboardPage = () => {
       setCurrentJoinMethod(selectedJoinMethod);
     } catch (error) {
       console.error("Error updating join method:", error);
+    }
+  };
+  const deleteMember = async (memberNickname) => {
+    // First, get the member object to remove
+    const memberToRemove = club.members.find(
+      (member) => member.nickname === memberNickname
+    );
+    if (!memberToRemove) {
+      console.error("Member not found in the club's member list!");
+      return;
+    }
+
+    const clubRef = doc(db, "clubs", clubId);
+    try {
+      await updateDoc(clubRef, {
+        members: arrayRemove(memberToRemove),
+      });
+      console.log(`Member ${memberNickname} removed successfully`);
+      // Update the local state to remove the member from the list
+      setMemberNicknames((prevNicknames) =>
+        prevNicknames.filter((nickname) => nickname !== memberNickname)
+      );
+    } catch (error) {
+      console.error("Error removing member:", error);
     }
   };
 
@@ -156,7 +171,8 @@ const AdminDashboardPage = () => {
         </>
       )}
       <h3 className="text-xl font-semibold mt-6">Members:</h3>
-      <MemberList memberNicknames={memberNicknames} />
+      <MemberList members={club.members} onDeleteMember={deleteMember} />
+
       {/* Add more admin-specific components here */}
     </div>
   );
