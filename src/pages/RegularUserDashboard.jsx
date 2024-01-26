@@ -10,6 +10,7 @@ import {
   arrayRemove,
 } from "firebase/firestore";
 import { db } from "../config/firebase-config";
+import SessionDisplay from "../components/SessionDisplay";
 const ClubHeader = ({ clubName }) => (
   <div className="text-3xl font-bold text-center my-6">{clubName} </div>
 );
@@ -50,7 +51,8 @@ const RegularUserDashboard = () => {
   const { club, loading, error, memberNicknames } = useClubDetails(clubId);
   const currentUser = auth.currentUser;
   const [hasJoined, setHasJoined] = useState(false);
-
+  const [selectedSession, setSelectedSession] = useState(null);
+  const [showSessionDetails, setShowSessionDetails] = useState(false);
   useEffect(() => {
     if (club && club.members && currentUser) {
       setHasJoined(club.members.includes(currentUser.uid));
@@ -122,6 +124,14 @@ const RegularUserDashboard = () => {
     ? club.adminNicknames
     : [];
 
+  const handleSessionSelect = (session) => {
+    setSelectedSession(session);
+    setShowSessionDetails(true); // Show the session details overlay
+  };
+
+  const closeSessionDetails = () => {
+    setShowSessionDetails(false); // Hide the session details overlay
+  };
   return (
     <div className="user-dashboard mx-auto max-w-4xl p-6">
       {club && <ClubHeader clubName={club.name} />}
@@ -155,6 +165,32 @@ const RegularUserDashboard = () => {
         <div>You are a member of this club.</div>
       ) : (
         <div>You are not a member of this club.</div>
+      )}
+      {/* Sessions List */}
+      <h3 className="text-xl font-semibold mt-6">Sessions:</h3>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {club?.sessions.map((session, index) => (
+          <div
+            key={index}
+            className="session-tile border p-4 cursor-pointer hover:shadow-lg"
+            onClick={() => handleSessionSelect(session)}
+          >
+            <h3 className="font-bold">{session.name}</h3>
+            <p>{new Date(session.date).toLocaleDateString()}</p>
+            <p>{session.time}</p>
+            {/* Add other brief details you want to show in the tile */}
+          </div>
+        ))}
+      </div>
+
+      {/* Session Details Overlay */}
+      {showSessionDetails && (
+        <div className="session-details-overlay">
+          <SessionDisplay
+            session={selectedSession}
+            onClose={closeSessionDetails}
+          />
+        </div>
       )}
     </div>
   );
