@@ -54,9 +54,16 @@ const RegularUserDashboard = () => {
   const [selectedSession, setSelectedSession] = useState(null);
   const [showSessionDetails, setShowSessionDetails] = useState(false);
   useEffect(() => {
-    if (club && club.members && currentUser) {
-      setHasJoined(club.members.includes(currentUser.uid));
-    }
+    const checkMembership = () => {
+      if (club && club.members && currentUser) {
+        const isMember = club.members.some(
+          (member) => member.uid === currentUser.uid
+        );
+        setHasJoined(isMember);
+      }
+    };
+
+    checkMembership();
   }, [club, currentUser]);
 
   const joinClub = async () => {
