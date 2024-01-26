@@ -5,8 +5,10 @@ import UpdateClubForm from "../components/UpdateClubForm";
 import { doc, updateDoc } from "firebase/firestore";
 import { db } from "../config/firebase-config";
 import { arrayRemove } from "firebase/firestore";
+import CreateSessionForm from "../components/CreateSessionForm";
+
 const ClubHeader = ({ clubName }) => (
-  <div className="text-xl font-bold">{clubName}</div>
+  <div className="text-xl font-bold text-center">{clubName}</div>
 );
 
 const AdminList = ({ adminNicknames }) => (
@@ -38,47 +40,6 @@ const MemberList = ({ members, onDeleteMember }) => (
   </ul>
 );
 
-//toggle for join method
-const JoinMethodToggle = ({
-  selectedMethod,
-  currentMethod,
-  onMethodChange,
-  onSave,
-}) => (
-  <div className="my-4">
-    <div className="flex items-center mb-2">
-      <label className="flex items-center mr-4">
-        <input
-          type="radio"
-          name="joinMethod"
-          value="open"
-          checked={selectedMethod === "open"}
-          onChange={() => onMethodChange("open")}
-          className="mr-2"
-        />
-        Open to All
-      </label>
-      <label className="flex items-center">
-        <input
-          type="radio"
-          name="joinMethod"
-          value="approval"
-          checked={selectedMethod === "approval"}
-          onChange={() => onMethodChange("approval")}
-          className="mr-2"
-        />
-        Approval Needed
-      </label>
-    </div>
-    <div className="text-sm text-gray-600">Current method: {currentMethod}</div>
-    <button
-      onClick={onSave}
-      className="mt-2 bg-blue-500 text-white p-2 rounded hover:bg-blue-600"
-    >
-      Save Changes
-    </button>
-  </div>
-);
 const AdminDashboardPage = () => {
   const { clubId } = useParams();
   const { club, loading, error, memberNicknames, re } = useClubDetails(clubId);
@@ -86,7 +47,8 @@ const AdminDashboardPage = () => {
     club?.joiningMethod || "open"
   );
   const [currentJoinMethod, setCurrentJoinMethod] = useState("open"); // New state for current join method
-
+  const [updateStatus, setUpdateStatus] = useState({ success: "", error: "" });
+  const [showCreateSessionForm, setShowCreateSessionForm] = useState(false);
   useEffect(() => {
     if (club && club.joiningMethod) {
       setSelectedJoinMethod(club.joiningMethod);
@@ -102,31 +64,26 @@ const AdminDashboardPage = () => {
 
   const handleUpdateClubDetails = async (updatedDetails) => {
     try {
-      // Assuming clubId is available here
       const clubRef = doc(db, "clubs", clubId);
       await updateDoc(clubRef, updatedDetails);
       console.log("Club details updated successfully");
+      setUpdateStatus({
+        success: "Club details updated successfully!",
+        error: "",
+      });
+      // Reset the success message after a few seconds
+      setTimeout(() => setUpdateStatus({ success: "", error: "" }), 3000);
     } catch (error) {
       console.error("Error updating club details:", error);
+      setUpdateStatus({
+        success: "",
+        error: "Error updating club details. Please try again.",
+      });
+      // Reset the error message after a few seconds
+      setTimeout(() => setUpdateStatus({ success: "", error: "" }), 3000);
     }
   };
 
-  // Function to delete a member from the club
-  // Function to delete a member from the club
-
-  const handleJoinMethodChange = (method) => {
-    setSelectedJoinMethod(method);
-  };
-  const handleSaveJoinMethod = async () => {
-    const clubRef = doc(db, "clubs", clubId);
-    try {
-      await updateDoc(clubRef, { joiningMethod: selectedJoinMethod });
-      console.log("Join method updated successfully");
-      setCurrentJoinMethod(selectedJoinMethod);
-    } catch (error) {
-      console.error("Error updating join method:", error);
-    }
-  };
   const deleteMember = async (memberNickname) => {
     // First, get the member object to remove
     const memberToRemove = club.members.find(
@@ -152,18 +109,30 @@ const AdminDashboardPage = () => {
     }
   };
 
+  const handleAddSessionClick = () => {
+    setShowCreateSessionForm(true);
+  };
+
+  const handleCancel = () => {
+    setShowCreateSessionForm(false);
+  };
   return (
     <div className="admin-dashboard p-4 bg-gray-100 rounded-lg shadow-md max-w-4xl mx-auto mt-10">
       {club && (
         <ClubHeader clubName={club.name} className="text-3xl font-bold mb-4" />
       )}
+      {updateStatus.success && (
+        <div className="text-green-500 text-sm font-bold my-2">
+          {updateStatus.success}
+        </div>
+      )}
+      {updateStatus.error && (
+        <div className="text-red-500 text-sm font-bold my-2">
+          {updateStatus.error}
+        </div>
+      )}
       <UpdateClubForm clubDetails={club} onUpdate={handleUpdateClubDetails} />
-      <JoinMethodToggle
-        selectedMethod={selectedJoinMethod}
-        currentMethod={currentJoinMethod}
-        onMethodChange={handleJoinMethodChange}
-        onSave={handleSaveJoinMethod}
-      />
+
       {adminNicknames.length > 0 && (
         <>
           <h3 className="text-xl font-semibold mt-6">Admins:</h3>
@@ -171,9 +140,27 @@ const AdminDashboardPage = () => {
         </>
       )}
       <h3 className="text-xl font-semibold mt-6">Members:</h3>
-      <MemberList members={club.members} onDeleteMember={deleteMember} />
-
-      {/* Add more admin-specific components here */}
+      {club && club.members && Array.isArray(club.members) ? (
+        <MemberList members={club.members} onDeleteMember={deleteMember} />
+      ) : (
+        <div>No members found.</div>
+      )}
+      <div className="bg-gray-800 text-white text-center py-6">
+        <h1 className="text-4xl font-bold">Sessions</h1>
+        <p className="text-xl mt-2">
+          Manage and create your D&D sessions here.
+        </p>
+        {showCreateSessionForm ? (
+          <CreateSessionForm clubId={clubId} onCancel={handleCancel} />
+        ) : (
+          <button
+            onClick={handleAddSessionClick}
+            className="bg-blue-500 text-white p-2 rounded bg-center bg-cover mt-4"
+          >
+            Add Session
+          </button>
+        )}
+      </div>
     </div>
   );
 };
