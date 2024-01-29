@@ -27,7 +27,7 @@ const ClubDashboardPage = () => {
 
         // Check if the current user's nickname matches the admin's nickname
 
-        setIsAdmin(clubData.adminNickname === userNickname);
+        setIsAdmin(clubData.adminNickname.includes(userNickname));
       } else {
         console.log("No such club!");
         setIsAdmin(false);

@@ -37,9 +37,15 @@ const ClubForm = ({ closeModal }) => {
 
       const clubData = {
         ...clubDetails,
-        adminNickname: userNickname, // Set the adminNickname to the user's nickname
+        adminNickname: [userNickname], // Set the adminNickname to the user's nickname
 
         joiningMethod: "open", // Set the joining method to 'open' by default
+        members: [
+          {
+            uid: currentUser.uid, // Set the admin's UID
+            nickname: userNickname, // Set the admin's nickname
+          },
+        ], // Set the members array to contain the admin's member object
       };
 
       const docRef = await addDoc(collection(db, "clubs"), clubData);
