@@ -2,21 +2,32 @@ import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { useClubDetails } from "../hooks/useClubDetails";
 import UpdateClubForm from "../components/UpdateClubForm";
-import { doc, updateDoc } from "firebase/firestore";
+import { doc, updateDoc, getDoc, arrayUnion } from "firebase/firestore";
 import { db } from "../config/firebase-config";
 import { arrayRemove } from "firebase/firestore";
 import CreateSessionForm from "../components/CreateSessionForm";
-
+import PromoteMemberForm from "../components/PromoteMemberForm";
 const ClubHeader = ({ clubName }) => (
   <div className="text-xl font-bold text-center">{clubName}</div>
 );
 
-const AdminList = ({ adminNicknames }) => (
+const AdminList = ({ adminNicknames, onDemoteAdmin }) => (
   <ul className="list-disc pl-5 my-4">
     {adminNicknames.map((nickname, index) => (
-      <li key={index} className="text-lg py-1">
+      <li
+        key={index}
+        className="text-lg py-1 flex justify-between items-center"
+      >
         {nickname}
-      </li> // Display the nickname
+        {adminNicknames.length > 1 && ( // Prevent the last admin from being demoted
+          <button
+            onClick={() => onDemoteAdmin(nickname)}
+            className="ml-4 bg-red-500 hover:bg-red-700 text-white p-2 rounded focus:outline-none focus:shadow-outline"
+          >
+            Demote
+          </button>
+        )}
+      </li>
     ))}
   </ul>
 );
@@ -49,6 +60,8 @@ const AdminDashboardPage = () => {
   const [currentJoinMethod, setCurrentJoinMethod] = useState("open"); // New state for current join method
   const [updateStatus, setUpdateStatus] = useState({ success: "", error: "" });
   const [showCreateSessionForm, setShowCreateSessionForm] = useState(false);
+  const [showPromoteMemberForm, setShowPromoteMemberForm] = useState(false);
+
   useEffect(() => {
     if (club && club.joiningMethod) {
       setSelectedJoinMethod(club.joiningMethod);
@@ -116,6 +129,88 @@ const AdminDashboardPage = () => {
   const handleCancel = () => {
     setShowCreateSessionForm(false);
   };
+
+  const promoteMemberToAdmin = async (memberUid) => {
+    // Assuming clubId is available in scope
+    const clubRef = doc(db, "clubs", clubId);
+    const clubSnap = await getDoc(clubRef);
+
+    if (!clubSnap.exists()) {
+      console.error("Club document does not exist!");
+      return;
+    }
+
+    const clubData = clubSnap.data();
+    let adminNicknames = clubData.adminNickname; // This should now be an array in Firestore
+
+    // If it's not an array, make it an array
+    if (!Array.isArray(adminNicknames)) {
+      adminNicknames = []; // Start with an empty array if no adminNicknames field exists
+    }
+
+    // Fetch the member's nickname using the UID
+    const memberRef = doc(db, "users", memberUid);
+    const memberSnap = await getDoc(memberRef);
+    if (!memberSnap.exists()) {
+      console.error("User document does not exist!");
+      return;
+    }
+    const memberNickname = memberSnap.data().nickname;
+
+    // Check if the member is already an admin
+    if (adminNicknames.includes(memberNickname)) {
+      console.error("Member is already an admin");
+      return;
+    }
+
+    // Add the new admin's nickname to the array
+    adminNicknames.push(memberNickname);
+
+    // Update the club's 'adminNickname' field in Firestore
+    await updateDoc(clubRef, {
+      adminNickname: adminNicknames,
+    });
+
+    console.log(
+      `Member with nickname ${memberNickname} promoted to admin successfully`
+    );
+  };
+
+  const onDemoteAdmin = async (adminNickname) => {
+    const clubRef = doc(db, "clubs", clubId);
+    try {
+      const clubSnap = await getDoc(clubRef);
+
+      if (clubSnap.exists()) {
+        const clubData = clubSnap.data();
+        let adminNicknames = clubData.adminNickname; // This should be an array in Firestore
+
+        // Check if the admin is in the list and remove the admin's nickname
+        if (adminNicknames.includes(adminNickname)) {
+          adminNicknames = adminNicknames.filter(
+            (nick) => nick !== adminNickname
+          );
+
+          // Update the club's 'adminNickname' field in Firestore
+          await updateDoc(clubRef, {
+            adminNickname: adminNicknames,
+          });
+
+          // Update local state
+          setAdminNicknames(adminNicknames); // Assuming you have a state called adminNicknames
+
+          console.log(`Admin ${adminNickname} has been demoted.`);
+        } else {
+          console.error("Admin not found in the list!");
+        }
+      } else {
+        console.error("Club document does not exist!");
+      }
+    } catch (error) {
+      console.error("Error demoting admin:", error);
+    }
+  };
+
   return (
     <div className="admin-dashboard p-4 bg-gray-100 rounded-lg shadow-md max-w-4xl mx-auto mt-10">
       {club && (
@@ -136,8 +231,25 @@ const AdminDashboardPage = () => {
       {adminNicknames.length > 0 && (
         <>
           <h3 className="text-xl font-semibold mt-6">Admins:</h3>
-          <AdminList adminNicknames={adminNicknames} />
+          <AdminList
+            adminNicknames={adminNicknames}
+            onDemoteAdmin={onDemoteAdmin}
+          />
         </>
+      )}
+      {showPromoteMemberForm ? (
+        <PromoteMemberForm
+          members={club?.members}
+          onPromote={promoteMemberToAdmin}
+          onCancel={() => setShowPromoteMemberForm(false)}
+        />
+      ) : (
+        <button
+          onClick={() => setShowPromoteMemberForm(true)}
+          className="bg-blue-500 text-white p-2 rounded bg-center bg-cover mt-4"
+        >
+          Assign Admin
+        </button>
       )}
       <h3 className="text-xl font-semibold mt-6">Members:</h3>
       {club && club.members && Array.isArray(club.members) ? (

@@ -175,20 +175,24 @@ const RegularUserDashboard = () => {
       )}
       {/* Sessions List */}
       <h3 className="text-xl font-semibold mt-6">Sessions:</h3>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {club?.sessions.map((session, index) => (
-          <div
-            key={index}
-            className="session-tile border p-4 cursor-pointer hover:shadow-lg"
-            onClick={() => handleSessionSelect(session)}
-          >
-            <h3 className="font-bold">{session.name}</h3>
-            <p>{new Date(session.date).toLocaleDateString()}</p>
-            <p>{session.time}</p>
-            {/* Add other brief details you want to show in the tile */}
-          </div>
-        ))}
-      </div>
+      {club?.sessions && club.sessions.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {club?.sessions.map((session, index) => (
+            <div
+              key={index}
+              className="session-tile border p-4 cursor-pointer hover:shadow-lg"
+              onClick={() => handleSessionSelect(session)}
+            >
+              <h3 className="font-bold">{session.name}</h3>
+              <p>{new Date(session.date).toLocaleDateString()}</p>
+              <p>{session.time}</p>
+              {/* Add other brief details you want to show in the tile */}
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div>No sessions found.</div>
+      )}
 
       {/* Session Details Overlay */}
       {showSessionDetails && (
