@@ -7,12 +7,22 @@ const CreateSessionForm = ({ clubId, onCancel }) => {
     name: "",
     date: "",
     time: "",
-    link: "",
+    locationType: "in-person", // added field for location type
+    location: "", // added field for physical location
+    link: "", // this will be conditional based on locationType
     description: "",
   });
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
 
+  const handleLocationTypeChange = (e) => {
+    const { value } = e.target;
+    setSessionDetails((prevDetails) => ({
+      ...prevDetails,
+      locationType: value,
+      link: value === "online" ? prevDetails.link : "", // Clear the link if the session is not online
+    }));
+  };
   const handleSubmit = async (event) => {
     event.preventDefault();
     // perform validation checks here
@@ -119,20 +129,60 @@ const CreateSessionForm = ({ clubId, onCancel }) => {
         <div>
           <label
             className="block text-gray-700 text-sm font-bold mb-2"
-            htmlFor="session-link"
+            htmlFor="location-type"
           >
-            Session Link
+            Location Type
           </label>
-          <input
-            id="session-link"
-            name="link"
-            type="url"
-            value={sessionDetails.link}
-            onChange={handleChange}
+          <select
+            id="location-type"
+            name="locationType"
+            value={sessionDetails.locationType}
+            onChange={handleLocationTypeChange}
             className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-            placeholder="http://"
-          />
+          >
+            <option value="in-person">In Person</option>
+            <option value="online">Online</option>
+          </select>
         </div>
+        {sessionDetails.locationType === "in-person" ? (
+          <div>
+            <label
+              className="block text-gray-700 text-sm font-bold mb-2"
+              htmlFor="session-location"
+            >
+              Location
+            </label>
+            <input
+              id="session-location"
+              name="location"
+              type="text"
+              value={sessionDetails.location}
+              onChange={handleChange}
+              required
+              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+              placeholder="Enter location address"
+            />
+          </div>
+        ) : (
+          <div>
+            <label
+              className="block text-gray-700 text-sm font-bold mb-2"
+              htmlFor="session-link"
+            >
+              Session Link
+            </label>
+            <input
+              id="session-link"
+              name="link"
+              type="url"
+              value={sessionDetails.link}
+              onChange={handleChange}
+              required={sessionDetails.locationType === "online"}
+              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+              placeholder="Enter session link"
+            />
+          </div>
+        )}
         <div>
           <label
             className="block text-gray-700 text-sm font-bold mb-2"
