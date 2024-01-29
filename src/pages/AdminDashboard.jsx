@@ -7,6 +7,7 @@ import { db } from "../config/firebase-config";
 import { arrayRemove } from "firebase/firestore";
 import CreateSessionForm from "../components/CreateSessionForm";
 import PromoteMemberForm from "../components/PromoteMemberForm";
+import SessionEditForm from "../components/SessionEditForm";
 const ClubHeader = ({ clubName }) => (
   <div className="text-xl font-bold text-center">{clubName}</div>
 );
@@ -61,6 +62,8 @@ const AdminDashboardPage = () => {
   const [updateStatus, setUpdateStatus] = useState({ success: "", error: "" });
   const [showCreateSessionForm, setShowCreateSessionForm] = useState(false);
   const [showPromoteMemberForm, setShowPromoteMemberForm] = useState(false);
+  const [editingSession, setEditingSession] = useState(null);
+  const [editingSessionIndex, setEditingSessionIndex] = useState(null);
 
   useEffect(() => {
     if (club && club.joiningMethod) {
@@ -211,6 +214,13 @@ const AdminDashboardPage = () => {
     }
   };
 
+  const handleEditSession = (session, index) => {
+    setEditingSession(session); // Set the session object for editing
+    setEditingSessionIndex(index); // Also keep track of the session index
+    console.log("Editing session at index:", index);
+    console.log("clubid", clubId);
+  };
+
   return (
     <div className="admin-dashboard p-4 bg-gray-100 rounded-lg shadow-md max-w-4xl mx-auto mt-10">
       {club && (
@@ -271,6 +281,42 @@ const AdminDashboardPage = () => {
           >
             Add Session
           </button>
+        )}
+        {!editingSession ? (
+          // Render the list of sessions with an edit button
+          <div className="sessions-list">
+            {club.sessions.map((session, index) => (
+              <div
+                key={index}
+                className="session-item flex justify-between items-center p-2 bg-white my-2 rounded shadow"
+              >
+                <span className="session-name text-black">{session.name}</span>
+                <span className="session-date text-black">
+                  {new Date(session.date).toLocaleDateString()}
+                </span>
+                <button
+                  onClick={() => handleEditSession(session, index)} // Pass both session object and index
+                  className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline"
+                >
+                  Edit
+                </button>
+              </div>
+            ))}
+          </div>
+        ) : (
+          // Render the edit form for the selected session
+          <SessionEditForm
+            session={editingSession}
+            clubId={clubId}
+            onSave={() => {
+              setEditingSession(null); // Clear the editing session
+              setEditingSessionIndex(null); // Clear the session index
+            }}
+            onCancel={() => {
+              setEditingSession(null); // Clear the editing session
+              setEditingSessionIndex(null); // Clear the session index
+            }}
+          />
         )}
       </div>
     </div>
