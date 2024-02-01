@@ -108,6 +108,24 @@ const SessionEditForm = ({ session, clubId, onSave, onCancel }) => {
             rows="3"
           />
         </div>
+        <div className="mb-4">
+          <label
+            className="block text-gray-700 text-sm font-bold mb-2"
+            htmlFor="session-capacity"
+          >
+            Capacity
+          </label>
+          <input
+            id="session-capacity"
+            name="capacity"
+            type="number"
+            min="1" // Minimum capacity
+            value={editSessionDetails.capacity}
+            onChange={handleChange}
+            className="form-input mt-1 block w-full text-black rounded-md border-gray-300 shadow-sm"
+            required
+          />
+        </div>
         <div className="flex justify-end gap-4">
           <button
             onClick={handleSave}

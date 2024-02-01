@@ -42,7 +42,7 @@ const ClubDashboardPage = () => {
   }, [clubId, currentUser, db]);
 
   if (isAdmin === null) {
-    return <div>Loading...</div>; // Or some loading indicator
+    return <div>Loading...</div>;
   }
   return (
     <div>

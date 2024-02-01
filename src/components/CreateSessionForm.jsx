@@ -11,6 +11,7 @@ const CreateSessionForm = ({ clubId, onCancel }) => {
     location: "", // added field for physical location
     link: "", // this will be conditional based on locationType
     description: "",
+    participants: [],
   });
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
@@ -40,6 +41,7 @@ const CreateSessionForm = ({ clubId, onCancel }) => {
         time: "",
         link: "",
         description: "",
+        capacity: 0,
       });
 
       // Set a success message
@@ -199,6 +201,25 @@ const CreateSessionForm = ({ clubId, onCancel }) => {
             rows="3"
             className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
             placeholder="Describe the session"
+          />
+        </div>
+        <div>
+          <label
+            className="block text-gray-700 text-sm font-bold mb-2"
+            htmlFor="session-capacity"
+          >
+            Participant Capacity
+          </label>
+          <input
+            id="session-capacity"
+            name="capacity"
+            type="number"
+            min="1" // Minimum capacity set to 1
+            value={sessionDetails.capacity}
+            onChange={handleChange}
+            required
+            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+            placeholder="Enter max number of participants"
           />
         </div>
         <div className="flex items-center justify-between">
