@@ -285,23 +285,29 @@ const AdminDashboardPage = () => {
         {!editingSession ? (
           // Render the list of sessions with an edit button
           <div className="sessions-list">
-            {club.sessions.map((session, index) => (
-              <div
-                key={index}
-                className="session-item flex justify-between items-center p-2 bg-white my-2 rounded shadow"
-              >
-                <span className="session-name text-black">{session.name}</span>
-                <span className="session-date text-black">
-                  {new Date(session.date).toLocaleDateString()}
-                </span>
-                <button
-                  onClick={() => handleEditSession(session, index)} // Pass both session object and index
-                  className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline"
+            {club.sessions && club.sessions.length > 0 ? (
+              club.sessions.map((session, index) => (
+                <div
+                  key={index}
+                  className="session-item flex justify-between items-center p-2 bg-white my-2 rounded shadow"
                 >
-                  Edit
-                </button>
-              </div>
-            ))}
+                  <span className="session-name text-black">
+                    {session.name}
+                  </span>
+                  <span className="session-date text-black">
+                    {new Date(session.date).toLocaleDateString()}
+                  </span>
+                  <button
+                    onClick={() => handleEditSession(session, index)} // Pass both session object and index
+                    className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline"
+                  >
+                    Edit
+                  </button>
+                </div>
+              ))
+            ) : (
+              <div>No sessions available.</div>
+            )}
           </div>
         ) : (
           // Render the edit form for the selected session

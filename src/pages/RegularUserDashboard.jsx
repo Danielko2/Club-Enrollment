@@ -53,6 +53,7 @@ const RegularUserDashboard = () => {
   const [hasJoined, setHasJoined] = useState(false);
   const [selectedSession, setSelectedSession] = useState(null);
   const [showSessionDetails, setShowSessionDetails] = useState(false);
+  const isUserLoggedIn = auth.currentUser != null;
   useEffect(() => {
     const checkMembership = () => {
       if (club && club.members && currentUser) {
@@ -139,6 +140,136 @@ const RegularUserDashboard = () => {
   const closeSessionDetails = () => {
     setShowSessionDetails(false); // Hide the session details overlay
   };
+  const handleJoinSession = async (sessionToJoin) => {
+    if (!isUserLoggedIn) {
+      console.error("User must be logged in to join a session");
+      return;
+    }
+
+    // Find the index of the session to join in the club.sessions array
+    const sessionIndex = club.sessions.findIndex((s) => {
+      return (
+        s.name === sessionToJoin.name &&
+        s.date === sessionToJoin.date &&
+        s.time === sessionToJoin.time
+      );
+    });
+
+    // Fetch the user's nickname
+    const userRef = doc(db, "users", currentUser.uid);
+    const userSnap = await getDoc(userRef);
+    if (!userSnap.exists()) {
+      console.error("User document does not exist!");
+      return;
+    }
+    const userNickname = userSnap.data().nickname;
+    // If the session isn't found or the session is at full capacity, don't proceed
+    if (
+      sessionIndex === -1 ||
+      club.sessions[sessionIndex].participants.length >= sessionToJoin.capacity
+    ) {
+      console.error("Session not found or is at full capacity");
+      return;
+    }
+
+    // Create a new participant object
+    const newParticipant = {
+      uid: currentUser.uid,
+      nickname: userNickname, // Set the nickname to the user's nickname
+    };
+
+    // Create a new array with the new participant added
+    const updatedParticipants = [
+      ...club.sessions[sessionIndex].participants,
+      newParticipant,
+    ];
+
+    try {
+      // Update the session with the new list of participants
+      const updatedSession = {
+        ...club.sessions[sessionIndex],
+        participants: updatedParticipants,
+      };
+      const clubRef = doc(db, "clubs", clubId);
+      // Construct a new sessions array with the updated session
+      const updatedSessions = [
+        ...club.sessions.slice(0, sessionIndex),
+        updatedSession,
+        ...club.sessions.slice(sessionIndex + 1),
+      ];
+      await updateDoc(clubRef, { sessions: updatedSessions });
+
+      setSelectedSession(updatedSession); // Update the local state to reflect the changes immediately
+      console.log("Joined session successfully");
+    } catch (error) {
+      console.error("Error joining session:", error);
+    }
+  };
+
+  const canJoinSession = (session) => {
+    return isUserLoggedIn && session.participants.length < session.capacity;
+  };
+  const handleLeaveSession = async (sessionToLeave) => {
+    if (!isUserLoggedIn) {
+      console.error("User must be logged in to leave a session");
+      return;
+    }
+
+    // Find the index of the session to leave in the club.sessions array
+    const sessionIndex = club.sessions.findIndex((s) => {
+      return (
+        s.name === sessionToLeave.name &&
+        s.date === sessionToLeave.date &&
+        s.time === sessionToLeave.time
+      );
+    });
+
+    if (sessionIndex === -1) {
+      console.error("Session not found");
+      return;
+    }
+
+    // Find the participant index
+    const participantIndex = club.sessions[sessionIndex].participants.findIndex(
+      (p) => p.uid === currentUser.uid
+    );
+
+    if (participantIndex === -1) {
+      console.error("Current user is not a participant in this session");
+      return;
+    }
+
+    // Create a new participants array without the current user
+    const updatedParticipants = [
+      ...club.sessions[sessionIndex].participants.slice(0, participantIndex),
+      ...club.sessions[sessionIndex].participants.slice(participantIndex + 1),
+    ];
+
+    try {
+      // Update the Firestore document
+      const clubRef = doc(db, "clubs", clubId);
+      const updatedSession = {
+        ...club.sessions[sessionIndex],
+        participants: updatedParticipants,
+      };
+      const updatedSessions = [
+        ...club.sessions.slice(0, sessionIndex),
+        updatedSession,
+        ...club.sessions.slice(sessionIndex + 1),
+      ];
+
+      await updateDoc(clubRef, { sessions: updatedSessions });
+
+      // Update the local state to reflect the changes immediately
+      const newSessionsState = [...club.sessions];
+      newSessionsState[sessionIndex].participants = updatedParticipants;
+      setSelectedSession(updatedSession);
+      console.log("Left session successfully");
+    } catch (error) {
+      console.error("Error leaving session:", error);
+    }
+  };
+
   return (
     <div className="user-dashboard mx-auto max-w-4xl p-6">
       {club && <ClubHeader clubName={club.name} />}
@@ -200,6 +331,9 @@ const RegularUserDashboard = () => {
           <SessionDisplay
             session={selectedSession}
             onClose={closeSessionDetails}
+            onJoin={handleJoinSession}
+            onLeave={handleLeaveSession}
+            canJoin={canJoinSession(selectedSession)}
           />
         </div>
       )}
