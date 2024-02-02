@@ -1,5 +1,6 @@
 import React from "react";
 import { auth } from "../config/firebase-config";
+import PayPalComponent from "../components/PayPalComponent"; // Import the PayPalComponent
 const SessionDisplay = ({ session, onClose, onJoin, canJoin, onLeave }) => {
   if (!session) return <div>Select a session to see the details</div>;
   const currentUser = auth.currentUser;
@@ -51,12 +52,17 @@ const SessionDisplay = ({ session, onClose, onJoin, canJoin, onLeave }) => {
             ))}
         </ul>
         {isParticipant ? (
-          <button
-            onClick={() => onLeave(session)}
-            className="mt-4 bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
-          >
-            Leave Session
-          </button>
+          <div>
+            <p>You have joined the session. Please proceed with the payment.</p>
+            <PayPalComponent amount={session.fee} />
+
+            <button
+              onClick={() => onLeave(session)}
+              className="mt-4 bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+            >
+              Leave Session
+            </button>
+          </div>
         ) : canJoin ? (
           <button
             onClick={() => onJoin(session)}

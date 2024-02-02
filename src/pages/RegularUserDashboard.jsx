@@ -11,7 +11,7 @@ import {
 } from "firebase/firestore";
 import { db } from "../config/firebase-config";
 import SessionDisplay from "../components/SessionDisplay";
-import PayPalComponent from "../components/PayPalComponent";
+
 const ClubHeader = ({ clubName }) => (
   <div className="text-3xl font-bold text-center my-6">{clubName} </div>
 );
@@ -338,8 +338,6 @@ const RegularUserDashboard = () => {
           />
         </div>
       )}
-      {/* PayPal Component */}
-      <PayPalComponent amount={10} />
     </div>
   );
 };
