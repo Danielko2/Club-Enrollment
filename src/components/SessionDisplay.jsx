@@ -53,7 +53,10 @@ const SessionDisplay = ({ session, onClose, onJoin, canJoin, onLeave }) => {
         </ul>
         {isParticipant ? (
           <div>
-            <p>You have joined the session. Please proceed with the payment.</p>
+            <p>
+              You have joined the session. Please proceed with the payment.{" "}
+              {session.fee}$ will be charged.
+            </p>
             <PayPalComponent amount={session.fee} />
 
             <button

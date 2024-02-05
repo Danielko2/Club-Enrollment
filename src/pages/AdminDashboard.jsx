@@ -220,6 +220,25 @@ const AdminDashboardPage = () => {
     console.log("Editing session at index:", index);
     console.log("clubid", clubId);
   };
+  const handleDeleteSession = async (sessionToDelete, index) => {
+    if (
+      !window.confirm(
+        `Are you sure you want to delete the session: ${sessionToDelete.name}?`
+      )
+    ) {
+      return; // Don't delete if the user cancels the action.
+    }
+
+    try {
+      const updatedSessions = club.sessions.filter((_, i) => i !== index); // Remove the session at the given index
+      const clubRef = doc(db, "clubs", clubId);
+      await updateDoc(clubRef, { sessions: updatedSessions });
+      console.log("Session deleted successfully");
+      // You might want to update your state here if you store sessions in the local state as well.
+    } catch (error) {
+      console.error("Error deleting session:", error);
+    }
+  };
 
   return (
     <div className="admin-dashboard p-4 bg-gray-100 rounded-lg shadow-md max-w-4xl mx-auto mt-10">
@@ -302,6 +321,12 @@ const AdminDashboardPage = () => {
                     className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline"
                   >
                     Edit
+                  </button>
+                  <button
+                    onClick={() => handleDeleteSession(session, index)}
+                    className="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline"
+                  >
+                    Delete
                   </button>
                 </div>
               ))
