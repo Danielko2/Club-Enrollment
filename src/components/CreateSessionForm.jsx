@@ -12,6 +12,7 @@ const CreateSessionForm = ({ clubId, onCancel }) => {
     link: "", // this will be conditional based on locationType
     description: "",
     participants: [],
+    fee: "", // added field for fee
   });
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
@@ -42,6 +43,7 @@ const CreateSessionForm = ({ clubId, onCancel }) => {
         link: "",
         description: "",
         capacity: 0,
+        fee: parseFloat(sessionDetails.fee).toFixed(2), // Format the fee to two decimal places
       });
 
       // Set a success message
@@ -220,6 +222,24 @@ const CreateSessionForm = ({ clubId, onCancel }) => {
             required
             className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
             placeholder="Enter max number of participants"
+          />
+          <label
+            className="block text-gray-700 text-sm font-bold mb-2"
+            htmlFor="session-fee"
+          >
+            Session Fee
+          </label>
+          <input
+            id="session-fee"
+            name="fee"
+            type="number"
+            min="0" // Minimum fee set to 0
+            step="0.01" // Allow decimal for the fee
+            value={sessionDetails.fee}
+            onChange={handleChange}
+            required
+            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+            placeholder="Enter session fee"
           />
         </div>
         <div className="flex items-center justify-between">

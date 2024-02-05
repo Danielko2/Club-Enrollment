@@ -125,6 +125,23 @@ const SessionEditForm = ({ session, clubId, onSave, onCancel }) => {
             className="form-input mt-1 block w-full text-black rounded-md border-gray-300 shadow-sm"
             required
           />
+          <label
+            className="block text-gray-700 text-sm font-bold mb-2"
+            htmlFor="session-fee"
+          >
+            Session Fee
+          </label>
+          <input
+            id="session-fee"
+            name="fee"
+            type="number"
+            min="0" // Minimum fee set to 0
+            step="0.01" // Allow decimal for the fee
+            value={editSessionDetails.fee}
+            onChange={handleChange}
+            className="form-input mt-1 block w-full text-black rounded-md border-gray-300 shadow-sm"
+            placeholder="Enter session fee"
+          />
         </div>
         <div className="flex justify-end gap-4">
           <button
