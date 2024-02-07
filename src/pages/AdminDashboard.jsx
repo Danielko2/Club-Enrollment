@@ -8,6 +8,7 @@ import { arrayRemove } from "firebase/firestore";
 import CreateSessionForm from "../components/CreateSessionForm";
 import PromoteMemberForm from "../components/PromoteMemberForm";
 import SessionEditForm from "../components/SessionEditForm";
+import ChatComponent from "../components/ChatComponent";
 const ClubHeader = ({ clubName }) => (
   <div className="text-xl font-bold text-center">{clubName}</div>
 );
@@ -68,7 +69,7 @@ const AdminDashboardPage = () => {
   const getPaidParticipantCount = (session) => {
     return session.participants.filter((p) => p.paid).length;
   };
-
+  const [showChat, setShowChat] = useState(false);
   useEffect(() => {
     if (club && club.joiningMethod) {
       setSelectedJoinMethod(club.joiningMethod);
@@ -290,6 +291,15 @@ const AdminDashboardPage = () => {
       ) : (
         <div>No members found.</div>
       )}
+      <button
+        onClick={() => setShowChat(!showChat)}
+        className="my-2 p-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+      >
+        {showChat ? "Hide Chat" : "Show Chat"}
+      </button>
+
+      {/* Conditionally render the chat component based on state */}
+      {showChat && <ChatComponent clubId={clubId} />}
       <div className="bg-gray-800 text-white text-center py-6">
         <h1 className="text-4xl font-bold">Sessions</h1>
         <p className="text-xl mt-2">
