@@ -4,7 +4,10 @@ import { db } from "../config/firebase-config";
 import { useClubDetails } from "../hooks/useClubDetails";
 
 const SessionEditForm = ({ session, clubId, onSave, onCancel }) => {
-  const [editSessionDetails, setEditSessionDetails] = useState({ ...session });
+  const [editSessionDetails, setEditSessionDetails] = useState({
+    ...session,
+    id: session.id,
+  });
   const isOnlineSession = session.link ? true : false; // Determine if the session is online based on the presence of a link
   const { club, loading, error } = useClubDetails(clubId);
   const handleChange = (e) => {
@@ -16,10 +19,7 @@ const SessionEditForm = ({ session, clubId, onSave, onCancel }) => {
     if (club && !loading && !error) {
       const updatedSessions = [...club.sessions];
       const sessionIndex = club.sessions.findIndex(
-        (s) =>
-          s.name === session.name &&
-          s.date === session.date &&
-          s.time === session.time
+        (s) => s.id === editSessionDetails.id
       );
 
       if (sessionIndex === -1) {
