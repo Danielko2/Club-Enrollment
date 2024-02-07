@@ -65,6 +65,10 @@ const AdminDashboardPage = () => {
   const [editingSession, setEditingSession] = useState(null);
   const [editingSessionIndex, setEditingSessionIndex] = useState(null);
 
+  const getPaidParticipantCount = (session) => {
+    return session.participants.filter((p) => p.paid).length;
+  };
+
   useEffect(() => {
     if (club && club.joiningMethod) {
       setSelectedJoinMethod(club.joiningMethod);
@@ -214,23 +218,23 @@ const AdminDashboardPage = () => {
     }
   };
 
-  const handleEditSession = (session, index) => {
-    setEditingSession(session); // Set the session object for editing
-    setEditingSessionIndex(index); // Also keep track of the session index
-    console.log("Editing session at index:", index);
-    console.log("clubid", clubId);
+  const handleEditSession = (sessionId) => {
+    const session = club.sessions.find((s) => s.id === sessionId);
+    setEditingSession(session);
+    // No need to set an index anymore
   };
-  const handleDeleteSession = async (sessionToDelete, index) => {
+
+  const handleDeleteSession = async (session) => {
     if (
       !window.confirm(
-        `Are you sure you want to delete the session: ${sessionToDelete.name}?`
+        `Are you sure you want to delete the session: ${session.name}?`
       )
     ) {
       return; // Don't delete if the user cancels the action.
     }
 
     try {
-      const updatedSessions = club.sessions.filter((_, i) => i !== index); // Remove the session at the given index
+      const updatedSessions = club.sessions.filter((s) => s.id !== session.id); // Remove the session at the given index
       const clubRef = doc(db, "clubs", clubId);
       await updateDoc(clubRef, { sessions: updatedSessions });
       console.log("Session deleted successfully");
@@ -292,7 +296,11 @@ const AdminDashboardPage = () => {
           Manage and create your D&D sessions here.
         </p>
         {showCreateSessionForm ? (
-          <CreateSessionForm clubId={clubId} onCancel={handleCancel} />
+          <CreateSessionForm
+            clubId={clubId}
+            onCancel={handleCancel}
+            onSessionCreated={() => setShowCreateSessionForm(false)}
+          />
         ) : (
           <button
             onClick={handleAddSessionClick}
@@ -308,7 +316,7 @@ const AdminDashboardPage = () => {
               club.sessions.map((session, index) => (
                 <div
                   key={index}
-                  className="session-item flex justify-between items-center p-2 bg-white my-2 rounded shadow"
+                  className=" session-item flex justify-between items-center p-2 bg-white my-2 rounded shadow"
                 >
                   <span className="session-name text-black">
                     {session.name}
@@ -316,14 +324,44 @@ const AdminDashboardPage = () => {
                   <span className="session-date text-black">
                     {new Date(session.date).toLocaleDateString()}
                   </span>
+                  <span className="group relative flex items-center cursor-pointer">
+                    <span className="session-participants text-black">
+                      {getPaidParticipantCount(session)} /{" "}
+                      {session.participants.length} have paid
+                    </span>
+
+                    {/* This is the tooltip that shows on hover over the participant count */}
+                    <div className="participant-info absolute left-full w-56 ml-2 p-2 bg-gray-100 rounded shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-opacity duration-300 z-10">
+                      <div className="text-gray-800">
+                        <strong>Paid:</strong>
+                        <ul>
+                          {session.participants
+                            .filter((p) => p.paid)
+                            .map((p, index) => (
+                              <li key={index}>{p.nickname}</li>
+                            ))}
+                        </ul>
+                      </div>
+                      <div className="text-gray-800">
+                        <strong>Not Paid:</strong>
+                        <ul>
+                          {session.participants
+                            .filter((p) => !p.paid)
+                            .map((p, index) => (
+                              <li key={index}>{p.nickname}</li>
+                            ))}
+                        </ul>
+                      </div>
+                    </div>
+                  </span>
                   <button
-                    onClick={() => handleEditSession(session, index)} // Pass both session object and index
+                    onClick={() => handleEditSession(session.id)}
                     className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline"
                   >
                     Edit
                   </button>
                   <button
-                    onClick={() => handleDeleteSession(session, index)}
+                    onClick={() => handleDeleteSession(session)}
                     className="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline"
                   >
                     Delete

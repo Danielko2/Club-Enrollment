@@ -1,8 +1,9 @@
 import React, { useState } from "react";
 import { db } from "../config/firebase-config";
 import { doc, updateDoc, arrayUnion } from "firebase/firestore";
+import { v4 as uuidv4 } from "uuid";
 
-const CreateSessionForm = ({ clubId, onCancel }) => {
+const CreateSessionForm = ({ clubId, onCancel, onSessionCreated }) => {
   const [sessionDetails, setSessionDetails] = useState({
     name: "",
     date: "",
@@ -12,6 +13,7 @@ const CreateSessionForm = ({ clubId, onCancel }) => {
     link: "", // this will be conditional based on locationType
     description: "",
     participants: [],
+
     fee: "", // added field for fee
   });
   const [successMessage, setSuccessMessage] = useState("");
@@ -29,11 +31,16 @@ const CreateSessionForm = ({ clubId, onCancel }) => {
     event.preventDefault();
     // perform validation checks here
 
+    const newSessionDetails = {
+      ...sessionDetails,
+      id: uuidv4(), // This generates a unique UUID for each session
+      fee: parseFloat(sessionDetails.fee).toFixed(2), // Format the fee to two decimal places
+    };
     try {
       const clubRef = doc(db, "clubs", clubId);
 
       await updateDoc(clubRef, {
-        sessions: arrayUnion(sessionDetails),
+        sessions: arrayUnion(newSessionDetails),
       });
       // Reset form
       setSessionDetails({
@@ -49,7 +56,9 @@ const CreateSessionForm = ({ clubId, onCancel }) => {
       // Set a success message
       setSuccessMessage("Session created successfully!");
       setErrorMessage(""); // Clear any previous errors
-
+      if (onSessionCreated) {
+        onSessionCreated();
+      }
       // Reset the success message after a few seconds
       setTimeout(() => {
         setSuccessMessage("");

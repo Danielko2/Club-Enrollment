@@ -1,7 +1,53 @@
 import React from "react";
 import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
+import { doc, getDoc, updateDoc } from "firebase/firestore"; // Import necessary Firestore functions
+import { db } from "../config/firebase-config";
+import { useAuth } from "../hooks/AuthContext";
+const PayPalComponent = ({ amount, clubId, sessionId, onPaymentSuccess }) => {
+  const { currentUser } = useAuth();
 
-const PayPalComponent = ({ amount }) => {
+  const handlePaymentSuccess = async () => {
+    // Fetch the club document
+    const clubRef = doc(db, "clubs", clubId);
+    const clubSnap = await getDoc(clubRef);
+
+    if (!clubSnap.exists()) {
+      console.error("Club does not exist!");
+      return;
+    }
+
+    const clubData = clubSnap.data();
+    const sessions = clubData.sessions;
+
+    // Find the session and update the 'paid' status for the current user
+    const sessionIndex = sessions.findIndex((s) => s.id === sessionId);
+    if (sessionIndex === -1) {
+      console.error("Session does not exist!");
+      return;
+    }
+
+    const updatedParticipants = sessions[sessionIndex].participants.map(
+      (participant) => {
+        if (participant.uid === currentUser.uid) {
+          return { ...participant, paid: true }; // Update the 'paid' property to true
+        }
+        return participant;
+      }
+    );
+
+    // Update the specific session's participants in the sessions array
+    sessions[sessionIndex].participants = updatedParticipants;
+
+    // Update the club document with the new sessions array
+    await updateDoc(clubRef, {
+      sessions: sessions,
+    });
+
+    // Call the function passed in as a prop
+
+    onPaymentSuccess();
+  };
+
   return (
     <PayPalScriptProvider
       options={{
@@ -21,10 +67,10 @@ const PayPalComponent = ({ amount }) => {
             ],
           });
         }}
-        onApprove={(data, actions) => {
-          return actions.order.capture().then((details) => {
-            // The transaction is successful. You can add the logic for successful transaction here
-            alert("Transaction completed by " + details.payer.name.given_name);
+        onApprove={async (data, actions) => {
+          return actions.order.capture().then(async (details) => {
+            alert(`Transaction completed by ${details.payer.name.given_name}`);
+            await handlePaymentSuccess(); // Call the function to update the 'paid' status
           });
         }}
       />

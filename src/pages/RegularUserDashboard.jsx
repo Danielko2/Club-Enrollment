@@ -176,7 +176,8 @@ const RegularUserDashboard = () => {
     // Create a new participant object
     const newParticipant = {
       uid: currentUser.uid,
-      nickname: userNickname, // Set the nickname to the user's nickname
+      nickname: userNickname,
+      paid: false, // Set the nickname to the user's nickname
     };
 
     // Create a new array with the new participant added
@@ -213,6 +214,15 @@ const RegularUserDashboard = () => {
   const handleLeaveSession = async (sessionToLeave) => {
     if (!isUserLoggedIn) {
       console.error("User must be logged in to leave a session");
+      return;
+    }
+
+    // Ask the user if they are sure they want to leave the session
+    const isConfirmed = window.confirm(
+      "Are you sure you want to leave the session?"
+    );
+    if (!isConfirmed) {
+      // If the user cancels, early return to stop further execution
       return;
     }
 
@@ -335,6 +345,7 @@ const RegularUserDashboard = () => {
             onJoin={handleJoinSession}
             onLeave={handleLeaveSession}
             canJoin={canJoinSession(selectedSession)}
+            clubId={clubId}
           />
         </div>
       )}
