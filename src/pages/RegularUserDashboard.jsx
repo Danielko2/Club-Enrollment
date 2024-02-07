@@ -11,7 +11,7 @@ import {
 } from "firebase/firestore";
 import { db } from "../config/firebase-config";
 import SessionDisplay from "../components/SessionDisplay";
-
+import ChatComponent from "../components/ChatComponent";
 const ClubHeader = ({ clubName }) => (
   <div className="text-3xl font-bold text-center my-6">{clubName} </div>
 );
@@ -27,13 +27,28 @@ const AdminList = ({ adminNicknames }) => (
 );
 
 const ClubDetails = ({ club }) => (
-  <div className="bg-white rounded-lg p-6 shadow-lg my-4">
-    <h3 className="text-xl font-semibold">Description:</h3>
-    <p className="text-gray-600 mt-2">{club.description}</p>
-    <h3 className="text-xl font-semibold mt-4">Location:</h3>
-    <p className="text-gray-600 mt-2">{club.location}</p>
-    <h3 className="text-xl font-semibold mt-4">Meeting Types:</h3>
-    <p className="text-gray-600 mt-2">{club.meetingType}</p>
+  <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-lg p-6 my-4">
+    <h3 className="text-2xl font-semibold text-gray-900 border-b pb-2 mb-4">
+      Club Details
+    </h3>
+    <div className="space-y-4">
+      <div>
+        <h4 className="text-lg font-semibold text-gray-800">Description:</h4>
+        <p className="text-gray-600 mt-1">
+          {club.description || "Not provided"}
+        </p>
+      </div>
+      <div>
+        <h4 className="text-lg font-semibold text-gray-800">Location:</h4>
+        <p className="text-gray-600 mt-1">{club.location || "Not provided"}</p>
+      </div>
+      <div>
+        <h4 className="text-lg font-semibold text-gray-800">Meeting Types:</h4>
+        <p className="text-gray-600 mt-1">
+          {club.meetingType || "Not provided"}
+        </p>
+      </div>
+    </div>
   </div>
 );
 
@@ -55,6 +70,8 @@ const RegularUserDashboard = () => {
   const [selectedSession, setSelectedSession] = useState(null);
   const [showSessionDetails, setShowSessionDetails] = useState(false);
   const isUserLoggedIn = auth.currentUser != null;
+  const [activeTab, setActiveTab] = useState("clubDetails");
+
   useEffect(() => {
     const checkMembership = () => {
       if (club && club.members && currentUser) {
@@ -282,73 +299,135 @@ const RegularUserDashboard = () => {
   };
 
   return (
-    <div className="user-dashboard mx-auto max-w-4xl p-6">
-      {club && <ClubHeader clubName={club.name} />}
-      {adminNicknames.length > 0 && (
-        <>
-          <h3 className="text-xl font-semibold mt-6">Admins:</h3>
-          <AdminList adminNicknames={adminNicknames} />
-        </>
-      )}
-      {club && <ClubDetails club={club} />}
-      <h3 className="text-xl font-semibold mt-6">Members:</h3>
-      <MemberList memberNicknames={memberNicknames} />
-      {/* Join/Leave Club Button */}
-      {!hasJoined ? (
-        <button
-          onClick={joinClub}
-          className="bg-blue-500 text-white p-2 rounded"
-        >
-          Join Club
-        </button>
-      ) : (
-        <button
-          onClick={leaveClub}
-          className="bg-red-500 text-white p-2 rounded"
-        >
-          Leave Club
-        </button>
-      )}
-      {/* Display user's membership status */}
-      {hasJoined ? (
-        <div>You are a member of this club.</div>
-      ) : (
-        <div>You are not a member of this club.</div>
-      )}
-      {/* Sessions List */}
-      <h3 className="text-xl font-semibold mt-6">Sessions:</h3>
-      {club?.sessions && club.sessions.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {club?.sessions.map((session, index) => (
-            <div
-              key={index}
-              className="session-tile border p-4 cursor-pointer hover:shadow-lg"
-              onClick={() => handleSessionSelect(session)}
+    <div className="flex h-screen overflow-hidden">
+      {/* Enhanced Sidebar */}
+      <div className="flex flex-col w-64 bg-gray-900 text-gray-100 p-4 space-y-6">
+        {/* Club Name and Action Buttons */}
+        <div>
+          <h1 className="text-2xl font-bold text-center text-white mb-4">
+            {club.name}
+          </h1>
+          {!hasJoined ? (
+            <button
+              onClick={joinClub}
+              className="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded transition duration-300 ease-in-out"
             >
-              <h3 className="font-bold">{session.name}</h3>
-              <p>{new Date(session.date).toLocaleDateString()}</p>
-              <p>{session.time}</p>
-              {/* Add other brief details you want to show in the tile */}
-            </div>
-          ))}
+              Join Club
+            </button>
+          ) : (
+            <button
+              onClick={leaveClub}
+              className="w-full bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded transition duration-300 ease-in-out"
+            >
+              Leave Club
+            </button>
+          )}
         </div>
-      ) : (
-        <div>No sessions found.</div>
-      )}
 
-      {/* Session Details Overlay */}
-      {showSessionDetails && (
-        <div className="session-details-overlay">
-          <SessionDisplay
-            session={selectedSession}
-            onClose={closeSessionDetails}
-            onJoin={handleJoinSession}
-            onLeave={handleLeaveSession}
-            canJoin={canJoinSession(selectedSession)}
-            clubId={clubId}
-          />
-        </div>
-      )}
+        {/* Navigation Links */}
+        <nav>
+          <ul className="flex flex-col space-y-2">
+            <li
+              className={`p-2 rounded hover:bg-gray-700 ${
+                activeTab === "clubDetails" ? "bg-gray-700" : ""
+              }`}
+              onClick={() => setActiveTab("clubDetails")}
+            >
+              Club Details
+            </li>
+            <li
+              className={`p-2 rounded hover:bg-gray-700 ${
+                activeTab === "members" ? "bg-gray-700" : ""
+              }`}
+              onClick={() => setActiveTab("members")}
+            >
+              Members
+            </li>
+            {isUserLoggedIn && hasJoined && (
+              <>
+                <li
+                  className={`p-2 rounded hover:bg-gray-700 ${
+                    activeTab === "sessions" ? "bg-gray-700" : ""
+                  }`}
+                  onClick={() => setActiveTab("sessions")}
+                >
+                  Sessions
+                </li>
+                <li
+                  className={`p-2 rounded hover:bg-gray-700 ${
+                    activeTab === "chat" ? "bg-gray-700" : ""
+                  }`}
+                  onClick={() => setActiveTab("chat")}
+                >
+                  Chat
+                </li>
+              </>
+            )}
+          </ul>
+        </nav>
+      </div>
+
+      {/* Main content area */}
+      <div className="flex-grow p-4 overflow-auto">
+        {/* Content based on active tab */}
+        {activeTab === "clubDetails" && (
+          <>
+            <ClubHeader clubName={club?.name} />
+            <ClubDetails club={club} />
+          </>
+        )}
+
+        {activeTab === "members" && (
+          <>
+            <h3 className="text-xl font-semibold">Admins:</h3>
+            <AdminList adminNicknames={adminNicknames} />
+            <h3 className="text-xl font-semibold">Members:</h3>
+            <MemberList memberNicknames={memberNicknames} />
+          </>
+        )}
+
+        {activeTab === "sessions" && isUserLoggedIn && hasJoined && (
+          <>
+            <h3 className="text-xl font-semibold">Sessions:</h3>
+            {/* Sessions List */}
+            {club?.sessions && club.sessions.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {club.sessions.map((session, index) => (
+                  <div
+                    key={index}
+                    className="session-tile border p-4 cursor-pointer hover:shadow-lg"
+                    onClick={() => handleSessionSelect(session)}
+                  >
+                    <h3 className="font-bold">{session.name}</h3>
+                    <p>{new Date(session.date).toLocaleDateString()}</p>
+                    <p>{session.time}</p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div>No sessions found.</div>
+            )}
+          </>
+        )}
+
+        {activeTab === "chat" && hasJoined && isUserLoggedIn && (
+          <ChatComponent clubId={clubId} />
+        )}
+
+        {/* Session Details Overlay */}
+        {showSessionDetails && selectedSession && (
+          <div className="absolute inset-0 bg-white bg-opacity-75 flex justify-center items-center">
+            <SessionDisplay
+              session={selectedSession}
+              onClose={closeSessionDetails}
+              onJoin={handleJoinSession}
+              onLeave={handleLeaveSession}
+              canJoin={canJoinSession(selectedSession)}
+              clubId={clubId}
+            />
+          </div>
+        )}
+      </div>
     </div>
   );
 };
