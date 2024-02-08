@@ -3,12 +3,13 @@ import { collection, addDoc, query, onSnapshot } from "firebase/firestore";
 import { db } from "../config/firebase-config"; // Ensure you have a firebase.js file exporting configured db
 import ClubForm from "../components/ClubForm";
 import { Link } from "react-router-dom";
+import { useAuth } from "../hooks/AuthContext";
 const Clubs = () => {
   const [clubs, setClubs] = useState([]);
   // const [newClubName, setNewClubName] = useState("");
-
+  const [loginPrompt, setLoginPrompt] = useState("");
   const [showModal, setShowModal] = useState(false);
-
+  const { currentUser } = useAuth();
   // Function to open the modal
   const openModal = () => {
     setShowModal(true);
@@ -19,13 +20,16 @@ const Clubs = () => {
     setShowModal(false);
   };
 
-  // // Add a new club to Firestore first method
-  // const addClub = async () => {
-  //   if (newClubName.trim() === "") return;
-  //   await addDoc(collection(db, "clubs"), { name: newClubName });
-  //   setNewClubName(""); // Reset input field after submission
-  // };
-
+  const handleAddClubClick = () => {
+    if (!currentUser) {
+      // If there is no current user, set the login prompt message
+      setLoginPrompt("Please log in to add a club.");
+      return;
+    }
+    // If the user is logged in, open the modal
+    setLoginPrompt(""); // Clear any existing login prompt
+    openModal();
+  };
   // Listen for real-time updates from Firestore
   useEffect(() => {
     const q = query(collection(db, "clubs"));
@@ -42,14 +46,16 @@ const Clubs = () => {
   }, []);
 
   return (
-    <div className="container mx-auto p-6">
+    <div className="container mx-auto p-6 text-center">
       <button
-        onClick={openModal}
+        onClick={handleAddClubClick}
         className="mb-4 inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
       >
         Add Club
       </button>
 
+      {/* Display login prompt message if set */}
+      {loginPrompt && <p className="text-red-500">{loginPrompt}</p>}
       {showModal && (
         <div className="fixed inset-0 z-10 overflow-y-auto">
           <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
