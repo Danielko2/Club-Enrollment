@@ -16,13 +16,14 @@ import {
   doc,
 } from "firebase/firestore";
 import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
-import { getAuth } from "firebase/auth";
+import { useAuth } from "../hooks/AuthContext";
 const RegisterLoginPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isRegistering, setIsRegistering] = useState(true);
   const [message, setMessage] = useState("");
   const [nickname, setNickname] = useState("");
+  const { setNickname: setAuthNickname } = useAuth();
   const navigate = useNavigate();
   const [needsNickname, setNeedsNickname] = useState(false); // New state for nickname prompt
   const resetFields = () => {
@@ -36,9 +37,11 @@ const RegisterLoginPage = () => {
     const userDocRef = doc(db, "users", user.uid);
     const docSnap = await getDoc(userDocRef);
     if (!docSnap.exists()) {
-      setNeedsNickname(true); // Prompt for nickname
+      // If the document doesn't exist, you are already setting the needsNickname state to true
+      setNeedsNickname(true);
     } else {
-      navigate("/clubs"); // User already has a document, navigate to clubs
+      // If the document exists, you are navigating to the clubs page
+      navigate("/clubs");
     }
   };
 
@@ -53,6 +56,7 @@ const RegisterLoginPage = () => {
   };
   const handleNicknameSubmission = async () => {
     const nicknameExistsResult = await nicknameExists(nickname);
+    setMessage("");
     if (nicknameExistsResult) {
       setMessage("Nickname already exists. Please choose a different one.");
       return;
@@ -62,7 +66,9 @@ const RegisterLoginPage = () => {
       email: user.email,
       nickname: nickname,
     });
+
     setNeedsNickname(false); // Close the nickname prompt
+    setAuthNickname(nickname);
     navigate("/clubs");
   };
 
