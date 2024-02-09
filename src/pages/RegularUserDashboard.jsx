@@ -71,7 +71,7 @@ const RegularUserDashboard = () => {
   const [showSessionDetails, setShowSessionDetails] = useState(false);
   const isUserLoggedIn = auth.currentUser != null;
   const [activeTab, setActiveTab] = useState("clubDetails");
-
+  const [loginPrompt, setLoginPrompt] = useState("");
   useEffect(() => {
     const checkMembership = () => {
       if (club && club.members && currentUser) {
@@ -86,6 +86,11 @@ const RegularUserDashboard = () => {
   }, [club, currentUser]);
 
   const joinClub = async () => {
+    if (!currentUser) {
+      // If the user is not logged in, set a prompt message
+      setLoginPrompt("You must be logged in to join the club.");
+      return;
+    }
     const userRef = doc(db, "users", currentUser.uid);
     const userSnap = await getDoc(userRef);
     if (!userSnap.exists()) {
@@ -301,8 +306,13 @@ const RegularUserDashboard = () => {
   return (
     <div className="flex h-screen overflow-hidden">
       {/* Enhanced Sidebar */}
+
       <div className="flex flex-col w-64 bg-gray-900 text-gray-100 p-4 space-y-6">
         {/* Club Name and Action Buttons */}
+        {/* Display login prompt message if set */}
+        {loginPrompt && (
+          <div className="text-center text-xl text-red-500">{loginPrompt}</div>
+        )}
         <div>
           <h1 className="text-2xl font-bold text-center text-white mb-4">
             {club.name}

@@ -65,7 +65,8 @@ const AdminDashboardPage = () => {
   const [showPromoteMemberForm, setShowPromoteMemberForm] = useState(false);
   const [editingSession, setEditingSession] = useState(null);
   const [editingSessionIndex, setEditingSessionIndex] = useState(null);
-
+  const [activeTab, setActiveTab] = useState("clubDetails");
+  const [selectedSession, setSelectedSession] = useState(null);
   const getPaidParticipantCount = (session) => {
     return session.participants.filter((p) => p.paid).length;
   };
@@ -244,159 +245,240 @@ const AdminDashboardPage = () => {
       console.error("Error deleting session:", error);
     }
   };
-
   return (
-    <div className="admin-dashboard p-4 bg-gray-100 rounded-lg shadow-md max-w-4xl mx-auto mt-10">
-      {club && (
-        <ClubHeader clubName={club.name} className="text-3xl font-bold mb-4" />
-      )}
-      {updateStatus.success && (
-        <div className="text-green-500 text-sm font-bold my-2">
-          {updateStatus.success}
+    <div className="flex h-screen overflow-hidden">
+      {/* Enhanced Sidebar */}
+      <div className="flex flex-col w-64 bg-gray-900 text-gray-100 p-4 space-y-6">
+        {/* Club Name and Action Buttons */}
+        <div>
+          <h1 className="text-2xl font-bold text-center text-white mb-4">
+            {club?.name}
+          </h1>
         </div>
-      )}
-      {updateStatus.error && (
-        <div className="text-red-500 text-sm font-bold my-2">
-          {updateStatus.error}
-        </div>
-      )}
-      <UpdateClubForm clubDetails={club} onUpdate={handleUpdateClubDetails} />
 
-      {adminNicknames.length > 0 && (
-        <>
-          <h3 className="text-xl font-semibold mt-6">Admins:</h3>
-          <AdminList
-            adminNicknames={adminNicknames}
-            onDemoteAdmin={onDemoteAdmin}
-          />
-        </>
-      )}
-      {showPromoteMemberForm ? (
-        <PromoteMemberForm
-          members={club?.members}
-          onPromote={promoteMemberToAdmin}
-          onCancel={() => setShowPromoteMemberForm(false)}
-        />
-      ) : (
-        <button
-          onClick={() => setShowPromoteMemberForm(true)}
-          className="bg-blue-500 text-white p-2 rounded bg-center bg-cover mt-4"
-        >
-          Assign Admin
-        </button>
-      )}
-      <h3 className="text-xl font-semibold mt-6">Members:</h3>
-      {club && club.members && Array.isArray(club.members) ? (
-        <MemberList members={club.members} onDeleteMember={deleteMember} />
-      ) : (
-        <div>No members found.</div>
-      )}
-      <button
-        onClick={() => setShowChat(!showChat)}
-        className="my-2 p-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-      >
-        {showChat ? "Hide Chat" : "Show Chat"}
-      </button>
+        {/* Navigation Links */}
+        <nav>
+          <ul className="flex flex-col space-y-2">
+            <li
+              className={`p-2 rounded hover:bg-gray-700 ${
+                activeTab === "clubDetails" ? "bg-gray-700" : ""
+              }`}
+              onClick={() => setActiveTab("clubDetails")}
+            >
+              Club Details
+            </li>
+            <li
+              className={`p-2 rounded hover:bg-gray-700 ${
+                activeTab === "sessions" ? "bg-gray-700" : ""
+              }`}
+              onClick={() => setActiveTab("sessions")}
+            >
+              Sessions
+            </li>
+            <li
+              className={`p-2 rounded hover:bg-gray-700 ${
+                activeTab === "members" ? "bg-gray-700" : ""
+              }`}
+              onClick={() => setActiveTab("members")}
+            >
+              Members
+            </li>
+            <li
+              className={`p-2 rounded hover:bg-gray-700 ${
+                activeTab === "chat" ? "bg-gray-700" : ""
+              }`}
+              onClick={() => setActiveTab("chat")}
+            >
+              Chat
+            </li>
+          </ul>
+        </nav>
+      </div>
 
-      {/* Conditionally render the chat component based on state */}
-      {showChat && <ChatComponent clubId={clubId} />}
-      <div className="bg-gray-800 text-white text-center py-6">
-        <h1 className="text-4xl font-bold">Sessions</h1>
-        <p className="text-xl mt-2">
-          Manage and create your D&D sessions here.
-        </p>
-        {showCreateSessionForm ? (
-          <CreateSessionForm
-            clubId={clubId}
-            onCancel={handleCancel}
-            onSessionCreated={() => setShowCreateSessionForm(false)}
-          />
-        ) : (
-          <button
-            onClick={handleAddSessionClick}
-            className="bg-blue-500 text-white p-2 rounded bg-center bg-cover mt-4"
-          >
-            Add Session
-          </button>
-        )}
-        {!editingSession ? (
-          // Render the list of sessions with an edit button
-          <div className="sessions-list">
-            {club.sessions && club.sessions.length > 0 ? (
-              club.sessions.map((session, index) => (
-                <div
-                  key={index}
-                  className=" session-item flex justify-between items-center p-2 bg-white my-2 rounded shadow"
-                >
-                  <span className="session-name text-black">
-                    {session.name}
-                  </span>
-                  <span className="session-date text-black">
-                    {new Date(session.date).toLocaleDateString()}
-                  </span>
-                  <span className="group relative flex items-center cursor-pointer">
-                    <span className="session-participants text-black">
-                      {getPaidParticipantCount(session)} /{" "}
-                      {session.participants.length} have paid
-                    </span>
-
-                    {/* This is the tooltip that shows on hover over the participant count */}
-                    <div className="participant-info absolute left-full w-56 ml-2 p-2 bg-gray-100 rounded shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-opacity duration-300 z-10">
-                      <div className="text-gray-800">
-                        <strong>Paid:</strong>
-                        <ul>
-                          {session.participants
-                            .filter((p) => p.paid)
-                            .map((p, index) => (
-                              <li key={index}>{p.nickname}</li>
-                            ))}
-                        </ul>
-                      </div>
-                      <div className="text-gray-800">
-                        <strong>Not Paid:</strong>
-                        <ul>
-                          {session.participants
-                            .filter((p) => !p.paid)
-                            .map((p, index) => (
-                              <li key={index}>{p.nickname}</li>
-                            ))}
-                        </ul>
-                      </div>
-                    </div>
-                  </span>
-                  <button
-                    onClick={() => handleEditSession(session.id)}
-                    className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => handleDeleteSession(session)}
-                    className="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline"
-                  >
-                    Delete
-                  </button>
-                </div>
-              ))
-            ) : (
-              <div>No sessions available.</div>
+      {/* Main content area based on active tab */}
+      <div className="flex-grow p-4 overflow-auto">
+        {activeTab === "clubDetails" && (
+          <>
+            {club && (
+              <ClubHeader
+                clubName={club.name}
+                className="text-3xl font-bold mb-4"
+              />
             )}
-          </div>
-        ) : (
-          // Render the edit form for the selected session
-          <SessionEditForm
-            session={editingSession}
-            clubId={clubId}
-            onSave={() => {
-              setEditingSession(null); // Clear the editing session
-              setEditingSessionIndex(null); // Clear the session index
-            }}
-            onCancel={() => {
-              setEditingSession(null); // Clear the editing session
-              setEditingSessionIndex(null); // Clear the session index
-            }}
-          />
+            {updateStatus.success && (
+              <div className="text-green-500 text-sm font-bold my-2">
+                {updateStatus.success}
+              </div>
+            )}
+            {updateStatus.error && (
+              <div className="text-red-500 text-sm font-bold my-2">
+                {updateStatus.error}
+              </div>
+            )}
+            <UpdateClubForm
+              clubDetails={club}
+              onUpdate={handleUpdateClubDetails}
+            />
+          </>
         )}
+
+        {/* Sessions Tab */}
+        {activeTab === "sessions" && (
+          <>
+            <h1 className="text-4xl font-bold text-center">Sessions</h1>
+            <p className="text-xl mt-2 text-center">
+              Manage and create your sessions here.
+            </p>
+
+            {/* Add Session Button and Form */}
+            {showCreateSessionForm ? (
+              <CreateSessionForm
+                clubId={clubId}
+                onCancel={() => setShowCreateSessionForm(false)}
+                onSessionCreated={() => {
+                  setShowCreateSessionForm(false);
+                  // Logic to refresh or update the session list
+                }}
+              />
+            ) : (
+              <button
+                onClick={() => setShowCreateSessionForm(true)}
+                className="bg-blue-500 text-white p-2 rounded mt-4"
+              >
+                Add Session
+              </button>
+            )}
+
+            {/* Sessions List with Payment Information */}
+            {!editingSession ? (
+              // Render the list of sessions with an edit button
+              <div className="sessions-list">
+                {club.sessions && club.sessions.length > 0 ? (
+                  club.sessions.map((session, index) => (
+                    <div
+                      key={index}
+                      className=" session-item flex justify-between items-center p-2 bg-white my-2 rounded shadow"
+                    >
+                      <span className="session-name text-black">
+                        {session.name}
+                      </span>
+                      <span className="session-date text-black">
+                        {new Date(session.date).toLocaleDateString()}
+                      </span>
+                      <span className="group relative flex items-center cursor-pointer">
+                        <span className="session-participants text-black">
+                          {getPaidParticipantCount(session)} /{" "}
+                          {session.participants.length} have paid
+                        </span>
+
+                        {/* This is the tooltip that shows on hover over the participant count */}
+                        <div className="participant-info absolute left-full w-56 ml-2 p-2 bg-gray-100 rounded shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-opacity duration-300 z-10">
+                          <div className="text-gray-800">
+                            <strong>Paid:</strong>
+                            <ul>
+                              {session.participants
+                                .filter((p) => p.paid)
+                                .map((p, index) => (
+                                  <li key={index}>{p.nickname}</li>
+                                ))}
+                            </ul>
+                          </div>
+                          <div className="text-gray-800">
+                            <strong>Not Paid:</strong>
+                            <ul>
+                              {session.participants
+                                .filter((p) => !p.paid)
+                                .map((p, index) => (
+                                  <li key={index}>{p.nickname}</li>
+                                ))}
+                            </ul>
+                          </div>
+                        </div>
+                      </span>
+                      <button
+                        onClick={() => handleEditSession(session.id)}
+                        className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => handleDeleteSession(session)}
+                        className="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  ))
+                ) : (
+                  <div>No sessions available.</div>
+                )}
+              </div>
+            ) : (
+              // Render the edit form for the selected session
+              <SessionEditForm
+                session={editingSession}
+                clubId={clubId}
+                onSave={() => {
+                  setEditingSession(null); // Clear the editing session
+                  setEditingSessionIndex(null); // Clear the session index
+                }}
+                onCancel={() => {
+                  setEditingSession(null); // Clear the editing session
+                  setEditingSessionIndex(null); // Clear the session index
+                }}
+              />
+            )}
+          </>
+        )}
+
+        {/* Members Tab */}
+        {activeTab === "members" && (
+          <>
+            <h1 className="text-4xl font-bold text-center">Members</h1>
+            <p className="text-xl mt-2 text-center">
+              Manage your club members and admins here.
+            </p>
+
+            {/* Admin List */}
+            {adminNicknames.length > 0 && (
+              <>
+                <h3 className="text-xl font-semibold mt-6">Admins:</h3>
+                <AdminList
+                  adminNicknames={adminNicknames}
+                  onDemoteAdmin={onDemoteAdmin}
+                />
+              </>
+            )}
+
+            {/* Promote Member Button */}
+            {showPromoteMemberForm ? (
+              <PromoteMemberForm
+                members={club?.members}
+                onPromote={promoteMemberToAdmin}
+                onCancel={() => setShowPromoteMemberForm(false)}
+              />
+            ) : (
+              <button
+                onClick={() => setShowPromoteMemberForm(true)}
+                className="bg-blue-500 text-white p-2 rounded mt-4"
+              >
+                Promote Member
+              </button>
+            )}
+
+            {/* Member List */}
+            <h3 className="text-xl font-semibold mt-6">Members:</h3>
+            {club && club.members && Array.isArray(club.members) ? (
+              <MemberList
+                members={club.members}
+                onDeleteMember={deleteMember}
+              />
+            ) : (
+              <div>No members found.</div>
+            )}
+          </>
+        )}
+        {activeTab === "chat" && <ChatComponent clubId={clubId} />}
       </div>
     </div>
   );
