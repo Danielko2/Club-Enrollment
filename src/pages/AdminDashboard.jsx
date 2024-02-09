@@ -245,6 +245,9 @@ const AdminDashboardPage = () => {
       console.error("Error deleting session:", error);
     }
   };
+  const nonAdminMembers = club.members.filter(
+    (member) => !adminNicknames.includes(member.nickname)
+  );
   return (
     <div className="flex h-screen overflow-hidden">
       {/* Enhanced Sidebar */}
@@ -451,9 +454,10 @@ const AdminDashboardPage = () => {
             )}
 
             {/* Promote Member Button */}
+            {/* Promote Member Button */}
             {showPromoteMemberForm ? (
               <PromoteMemberForm
-                members={club?.members}
+                members={nonAdminMembers} // Pass non-admin members here
                 onPromote={promoteMemberToAdmin}
                 onCancel={() => setShowPromoteMemberForm(false)}
               />
