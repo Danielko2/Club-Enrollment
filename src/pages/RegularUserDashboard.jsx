@@ -12,6 +12,7 @@ import {
 import { db } from "../config/firebase-config";
 import SessionDisplay from "../components/SessionDisplay";
 import ChatComponent from "../components/ChatComponent";
+import CalendarView from "../components/CalendarView";
 const ClubHeader = ({ clubName }) => (
   <div className="text-3xl font-bold text-center my-6">{clubName} </div>
 );
@@ -302,6 +303,11 @@ const RegularUserDashboard = () => {
       console.error("Error leaving session:", error);
     }
   };
+  const handleEventClick = ({ event }) => {
+    const session = event.extendedProps;
+    setSelectedSession(session);
+    setShowSessionDetails(true);
+  };
 
   return (
     <div className="flex h-screen overflow-hidden">
@@ -398,6 +404,14 @@ const RegularUserDashboard = () => {
 
         {activeTab === "sessions" && isUserLoggedIn && hasJoined && (
           <>
+            <div className="mx-auto p-4 sm:p-6 md:max-w-3xl lg:max-w-4xl xl:max-w-5xl">
+              <h3 className="text-xl font-semibold">Sessions Calendar:</h3>
+              <CalendarView
+                sessions={club?.sessions || []}
+                onEventClick={handleEventClick} // Pass the event click handler
+              />
+            </div>
+
             <h3 className="text-xl font-semibold">Sessions:</h3>
             {/* Sessions List */}
             {club?.sessions && club.sessions.length > 0 ? (
