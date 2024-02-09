@@ -11,7 +11,9 @@ const HowItWorks = () => {
         <h2 className="text-3xl font-bold text-center mb-8">How It Works</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
           {/* Step 1 */}
-          <div>
+          <div className="animate-slide-in-left">
+            {" "}
+            {/* Using Tailwind's slide-in animation */}
             <img
               src={RegisterIcon}
               alt="Register"
@@ -22,7 +24,9 @@ const HowItWorks = () => {
           </div>
 
           {/* Step 2 */}
-          <div>
+          <div className="animate-slide-in-left">
+            {" "}
+            {/* Same animation, but no delay */}
             <img
               src={ClubsIcon}
               alt="Find Clubs"
@@ -33,7 +37,9 @@ const HowItWorks = () => {
           </div>
 
           {/* Step 3 */}
-          <div>
+          <div className="animate-slide-in-left">
+            {" "}
+            {/* Same animation, still no delay */}
             <img
               src={PlayIcon}
               alt="Join Sessions"
