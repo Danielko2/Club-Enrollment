@@ -9,7 +9,7 @@ import {
   serverTimestamp,
 } from "firebase/firestore";
 import { useAuth } from "../hooks/AuthContext";
-
+import defaultProfilePic from "../assets/default-avatar.png";
 const ChatComponent = ({ clubId }) => {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
@@ -26,6 +26,7 @@ const ChatComponent = ({ clubId }) => {
         const loadedMessages = snapshot.docs.map((doc) => ({
           id: doc.id,
           isCurrentUser: doc.data().uid === currentUser.uid, // Flag to identify current user's messages
+          profilePic: doc.data().photoURL || defaultProfilePic, // Use the photoURL from the message
           ...doc.data(),
         }));
         setMessages(loadedMessages);
@@ -45,13 +46,14 @@ const ChatComponent = ({ clubId }) => {
 
       await addDoc(messagesRef, {
         text: newMessage,
-        createdAt: serverTimestamp(), // Use serverTimestamp for consistency
+        createdAt: serverTimestamp(),
         uid: currentUser.uid,
-        nickname: nickname, // Add the nickname to the message
+        nickname: nickname,
+        photoURL: currentUser.photoURL, // Include the user's photoURL
       });
 
       setNewMessage("");
-      scrollToBottom(); // Scroll to bottom when a new message is sent
+      scrollToBottom();
     }
   };
 
@@ -77,13 +79,22 @@ const ChatComponent = ({ clubId }) => {
                 } max-w-[75%]`}
               >
                 <div className="flex justify-between items-center">
-                  <span
-                    className={`text-xs font-semibold ${
-                      message.isCurrentUser ? "text-blue-800" : "text-gray-600"
-                    }`}
-                  >
-                    {message.nickname || "User"}
-                  </span>
+                  <div className="flex items-center">
+                    <img
+                      src={message.profilePic}
+                      alt="Profile"
+                      className="h-8 w-8 rounded-full object-cover mr-2"
+                    />
+                    <span
+                      className={`text-xs font-semibold ${
+                        message.isCurrentUser
+                          ? "text-blue-800"
+                          : "text-gray-600"
+                      }`}
+                    >
+                      {message.nickname || "User"}
+                    </span>
+                  </div>
                   <span className="text-xs text-gray-500">
                     {message.createdAt
                       ? new Date(

@@ -4,6 +4,7 @@ import { getAnalytics } from "firebase/analytics";
 import "firebase/firestore"; 
 import {getFirestore, connectFirestoreEmulator} from "firebase/firestore"
 import { getAuth, connectAuthEmulator } from 'firebase/auth';
+import { getStorage, connectStorageEmulator } from 'firebase/storage';
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
@@ -25,11 +26,11 @@ const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
 const db = getFirestore(app);
 const auth = getAuth(app);
+const storage = getStorage(app);
 // Check if running on localhost to use the emulator
 if (window.location.hostname === "localhost") {
     connectFirestoreEmulator(db, "localhost", 8080);
     connectAuthEmulator(auth, 'http://localhost:9099');
+    connectStorageEmulator(storage, 'localhost', 9199);
   }
-  export { auth };
-
-  export { db };
+  export { auth, db, storage };

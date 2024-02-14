@@ -11,10 +11,11 @@ export const AuthProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(null);
   const [nickname, setNickname] = useState("");
   const [loading, setLoading] = useState(true);
-
+  const [userPhotoURL, setUserPhotoURL] = useState(null);
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setCurrentUser(user);
+      setUserPhotoURL(user?.photoURL);
       if (user) {
         // Fetch the nickname from Firestore and set it in context
         fetchAndSetNickname(user.uid);
@@ -34,10 +35,20 @@ export const AuthProvider = ({ children }) => {
 
     return unsubscribe;
   }, []);
+  const updateProfilePicture = async (photoURL) => {
+    setUserPhotoURL(photoURL); // Update the context state
+    if (currentUser) {
+      // Update the Firebase Auth user profile
+      await updateProfile(currentUser, { photoURL });
+      // Trigger a re-render in components using the AuthContext
+    }
+  };
 
   const value = {
     currentUser,
     nickname,
+    userPhotoURL, // Include the userPhotoURL in the context
+    updateProfilePicture, // Provide the update method to the context
     setNickname,
     login: (email, password) =>
       signInWithEmailAndPassword(auth, email, password),
