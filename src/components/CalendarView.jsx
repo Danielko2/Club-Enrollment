@@ -1,30 +1,56 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 
-const CalendarView = ({ sessions, onEventClick }) => {
-  // Transform sessions to the format expected by FullCalendar
-  const transformedSessions = sessions.map((session) => ({
-    title: session.name + (session.time ? ` - ${session.time}` : ""), // Include time
-    start: session.date, // Use date as start
-    // end: session.endDate,
-    extendedProps: {
-      ...session, // Include the entire session object for easy access on click
-    },
-  }));
+const CalendarView = ({ sessions, onEventClick, currentUser }) => {
+  const [sortedSessions, setSortedSessions] = useState([]);
+
+  useEffect(() => {
+    const transformedSessions = sessions
+      .map((session) => {
+        const dateTime = `${session.date}T${session.time}:00`;
+        const isUserJoined = session.participants.some(
+          (participant) => participant.uid === currentUser?.uid
+        );
+
+        return {
+          title: session.name + (session.time ? ` - ${session.time}` : ""),
+          start: dateTime,
+          backgroundColor: isUserJoined ? "#34D399" : "#60A5FA",
+          borderColor: isUserJoined ? "#059669" : "#3B82F6",
+          extendedProps: {
+            ...session,
+          },
+        };
+      })
+      .sort((a, b) => new Date(a.start) - new Date(b.start));
+    console.log(transformedSessions);
+    setSortedSessions(transformedSessions);
+  }, [sessions, currentUser]); // Dependencies array to update when sessions or currentUser changes
+
   const renderEventContent = (eventInfo) => {
     return (
-      <div className="flex flex-col justify-between items-start h-full p-1">
-        <div className="font-semibold text-center text-xs sm:text-sm">
-          {eventInfo.event.extendedProps.name}
+      <div
+        className="flex flex-col justify-between items-center h-full p-1 break-words"
+        style={{
+          backgroundColor: eventInfo.event.backgroundColor,
+          borderColor: eventInfo.event.borderColor,
+          borderWidth: "1px",
+          borderStyle: "solid",
+          borderRadius: "5px",
+          boxShadow: "0 1px 2px 0 rgba(0, 0, 0, 0.05)",
+          cursor: "pointer",
+        }}
+      >
+        <div className="font-semibold text-xs sm:text-sm lg:text-base whitespace-normal">
+          {eventInfo.event.title}
         </div>
-        <div className="text-xs sm:text-sm">{eventInfo.timeText}</div>
       </div>
     );
   };
 
   return (
-    <div className="mx-auto p-4 sm:max-w-sm md:max-w-md lg:max-w-lg xl:max-w-xl">
+    <div className="p-4">
       <FullCalendar
         plugins={[dayGridPlugin]}
         initialView="dayGridMonth"
@@ -33,16 +59,13 @@ const CalendarView = ({ sessions, onEventClick }) => {
           center: "title",
           right: "dayGridMonth,dayGridWeek,dayGridDay",
         }}
-        footerToolbar={
-          {
-            // Custom buttons or other components if needed
-          }
-        }
-        events={transformedSessions}
+        events={sortedSessions}
         eventContent={renderEventContent}
         eventClick={onEventClick}
-        aspectRatio={1.35} // Control the aspect ratio of the calendar
-        // Additional options...
+        key={sessions.length} // Use sessions.length as a key to force re-render
+        aspectRatio={1.35}
+        contentHeight="auto"
+        windowResizeDelay={100}
       />
     </div>
   );
