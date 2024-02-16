@@ -37,14 +37,11 @@ const AdminList = ({ adminNicknames, onDemoteAdmin }) => (
 const MemberList = ({ members, onDeleteMember }) => (
   <ul className="list-disc pl-5 my-4">
     {members.map((member, index) => (
-      <li
-        key={index}
-        className="text-lg py-1 flex justify-between items-center"
-      >
-        {member.nickname}
+      <li key={index} className="flex  items-center py-1">
+        <span className="text-lg">{member.nickname}</span>
         <button
           onClick={() => onDeleteMember(member.nickname)}
-          className="bg-red-500 text-white p-2 rounded"
+          className="ml-2 bg-red-500 text-white p-2 rounded"
         >
           Delete
         </button>

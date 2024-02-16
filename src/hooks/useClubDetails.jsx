@@ -20,28 +20,6 @@ export const useClubDetails = (clubId) => {
     return nicknames.filter((n) => n); // Filter out null values
   };
 
-  // Function to refetch the member nicknames list
-  // const refetchMemberList = async () => {
-  //   try {
-  //     const clubRef = doc(db, "clubs", clubId);
-  //     const clubSnapshot = await getDoc(clubRef);
-  //     if (clubSnapshot.exists()) {
-  //       const data = clubSnapshot.data();
-  //       if (data.members) {
-  //         const memberNicknamesArray = await fetchMemberNicknames(
-  //           data.members.nickname
-  //         );
-  //         setMemberNicknames(memberNicknamesArray); // Update only memberNicknames state
-  //       }
-  //     } else {
-  //       setError("Club does not exist");
-  //     }
-  //   } catch (err) {
-  //     setError("Failed to fetch club members");
-  //     console.error(err);
-  //   }
-  // };
-
   // Effect to fetch club details and member nicknames
   useEffect(() => {
     if (!clubId) {

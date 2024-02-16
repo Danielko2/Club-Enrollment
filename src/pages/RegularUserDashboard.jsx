@@ -20,7 +20,7 @@ const ClubHeader = ({ clubName }) => (
 const AdminList = ({ adminNicknames }) => (
   <ul className="list-disc pl-5 my-4">
     {adminNicknames.map((nickname, index) => (
-      <li key={index} className="text-lg py-1">
+      <li key={index} className=" flex text-lg py-1">
         {nickname}
       </li> // Display the nickname
     ))}
@@ -56,7 +56,7 @@ const ClubDetails = ({ club }) => (
 const MemberList = ({ memberNicknames }) => (
   <ul className="list-disc pl-5 my-4">
     {memberNicknames.map((nickname, index) => (
-      <li key={index} className="text-lg py-1">
+      <li key={index} className=" flex text-lg py-1">
         {nickname}
       </li>
     ))}
