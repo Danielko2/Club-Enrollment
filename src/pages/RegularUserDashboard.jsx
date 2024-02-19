@@ -13,6 +13,7 @@ import { db } from "../config/firebase-config";
 import SessionDisplay from "../components/SessionDisplay";
 import ChatComponent from "../components/ChatComponent";
 import CalendarView from "../components/CalendarView";
+import StartChatComponent from "../components/StartChatComponent";
 const ClubHeader = ({ clubName }) => (
   <div className="text-3xl font-bold text-center my-6">{clubName} </div>
 );
@@ -20,7 +21,7 @@ const ClubHeader = ({ clubName }) => (
 const AdminList = ({ adminNicknames }) => (
   <ul className="list-disc pl-5 my-4">
     {adminNicknames.map((nickname, index) => (
-      <li key={index} className="text-lg py-1">
+      <li key={index} className=" flex text-lg py-1">
         {nickname}
       </li> // Display the nickname
     ))}
@@ -56,7 +57,7 @@ const ClubDetails = ({ club }) => (
 const MemberList = ({ memberNicknames }) => (
   <ul className="list-disc pl-5 my-4">
     {memberNicknames.map((nickname, index) => (
-      <li key={index} className="text-lg py-1">
+      <li key={index} className=" flex text-lg py-1">
         {nickname}
       </li>
     ))}
@@ -73,6 +74,7 @@ const RegularUserDashboard = () => {
   const isUserLoggedIn = auth.currentUser != null;
   const [activeTab, setActiveTab] = useState("clubDetails");
   const [loginPrompt, setLoginPrompt] = useState("");
+  const [showStartChat, setShowStartChat] = useState(false);
   useEffect(() => {
     const checkMembership = () => {
       if (club && club.members && currentUser) {
@@ -405,17 +407,20 @@ const RegularUserDashboard = () => {
         {activeTab === "sessions" && isUserLoggedIn && hasJoined && (
           <>
             <div className="mx-auto p-4 sm:p-6 md:max-w-3xl lg:max-w-4xl xl:max-w-5xl">
-              <h3 className="text-xl font-semibold">Sessions Calendar:</h3>
+              <h3 className="text-xl font-semibold text-center lg:text-left">
+                Sessions Calendar:
+              </h3>
               <CalendarView
                 sessions={club?.sessions || []}
-                onEventClick={handleEventClick} // Pass the event click handler
+                onEventClick={handleEventClick}
+                currentUser={currentUser} // Make sure to pass currentUser here
               />
             </div>
 
             <h3 className="text-xl font-semibold">Sessions:</h3>
             {/* Sessions List */}
             {club?.sessions && club.sessions.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="container mx-auto p-4">
                 {club.sessions.map((session, index) => (
                   <div
                     key={index}
@@ -435,7 +440,17 @@ const RegularUserDashboard = () => {
         )}
 
         {activeTab === "chat" && hasJoined && isUserLoggedIn && (
-          <ChatComponent clubId={clubId} />
+          <>
+            <ChatComponent clubId={clubId} />
+
+            {/* Add button to toggle start chat component */}
+            <button onClick={() => setShowStartChat(true)}>
+              Start New Chat
+            </button>
+
+            {/* Conditionally render the StartChatComponent */}
+            {showStartChat && <StartChatComponent clubId={clubId} />}
+          </>
         )}
 
         {/* Session Details Overlay */}

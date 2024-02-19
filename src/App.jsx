@@ -5,6 +5,7 @@ import NavBar from "./components/Navbar";
 import Clubs from "./pages/Clubs";
 import RegisterPage from "./pages/RegisterPage";
 import ClubDashboard from "./pages/ClubDashboard";
+import UserDashboard from "./pages/UserDashboard";
 import { AuthProvider } from "./hooks/AuthContext";
 function App() {
   return (
@@ -17,7 +18,7 @@ function App() {
           <Route path="/Clubs" element={<Clubs />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/club-dashboard/:clubId" element={<ClubDashboard />} />
-
+          <Route path="/userdashboard" element={<UserDashboard />} />
           {/* Define more routes as needed */}
         </Routes>
       </div>
