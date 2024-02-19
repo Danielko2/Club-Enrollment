@@ -13,6 +13,7 @@ import { db } from "../config/firebase-config";
 import SessionDisplay from "../components/SessionDisplay";
 import ChatComponent from "../components/ChatComponent";
 import CalendarView from "../components/CalendarView";
+import StartChatComponent from "../components/StartChatComponent";
 const ClubHeader = ({ clubName }) => (
   <div className="text-3xl font-bold text-center my-6">{clubName} </div>
 );
@@ -73,6 +74,7 @@ const RegularUserDashboard = () => {
   const isUserLoggedIn = auth.currentUser != null;
   const [activeTab, setActiveTab] = useState("clubDetails");
   const [loginPrompt, setLoginPrompt] = useState("");
+  const [showStartChat, setShowStartChat] = useState(false);
   useEffect(() => {
     const checkMembership = () => {
       if (club && club.members && currentUser) {
@@ -438,7 +440,17 @@ const RegularUserDashboard = () => {
         )}
 
         {activeTab === "chat" && hasJoined && isUserLoggedIn && (
-          <ChatComponent clubId={clubId} />
+          <>
+            <ChatComponent clubId={clubId} />
+
+            {/* Add button to toggle start chat component */}
+            <button onClick={() => setShowStartChat(true)}>
+              Start New Chat
+            </button>
+
+            {/* Conditionally render the StartChatComponent */}
+            {showStartChat && <StartChatComponent clubId={clubId} />}
+          </>
         )}
 
         {/* Session Details Overlay */}
