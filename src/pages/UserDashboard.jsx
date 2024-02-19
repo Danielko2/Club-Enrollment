@@ -1,13 +1,15 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useAuth } from "../hooks/AuthContext";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { updateProfile } from "firebase/auth";
-import { storage } from "../config/firebase-config"; // Adjust the import path as needed
-
+import { storage } from "../config/firebase-config";
+import { db } from "../config/firebase-config";
+import { collection, onSnapshot, query, where } from "firebase/firestore";
+import { Link } from "react-router-dom";
 const UserDashboard = () => {
   const { currentUser, updateProfilePicture } = useAuth();
   const [userPhoto, setUserPhoto] = useState(currentUser.photoURL);
-
+  const [clubs, setClubs] = useState([]); // State to store the clubs
   const handleImageUpload = async (event) => {
     const file = event.target.files[0];
     if (!file) return;
@@ -31,6 +33,28 @@ const UserDashboard = () => {
   if (!currentUser) {
     return <div>Please log in to view this page.</div>;
   }
+
+  useEffect(() => {
+    if (!currentUser) return;
+
+    // Fetch all clubs then filter in the client
+    const q = query(collection(db, "clubs"));
+
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+      const clubsArray = querySnapshot.docs
+        .map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }))
+        .filter((club) =>
+          club.members.some((member) => member.uid === currentUser.uid)
+        ); // Filter in client
+
+      setClubs(clubsArray);
+    });
+
+    return () => unsubscribe();
+  }, [currentUser]);
 
   return (
     <div className="container mx-auto my-10 p-8 border rounded shadow-lg">
@@ -64,6 +88,21 @@ const UserDashboard = () => {
           hover:file:bg-violet-100
         "
         />
+        <div className="mt-8">
+          <h2 className="text-lg font-semibold mb-4">Your Clubs:</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {clubs.map((club) => (
+              <Link
+                key={club.id}
+                to={`/club-dashboard/${club.id}`}
+                className="flex flex-col justify-between p-6 bg-white rounded-lg border border-gray-200 shadow hover:shadow-lg transition-shadow duration-300"
+              >
+                <h5 className="text-xl font-bold text-gray-900">{club.name}</h5>
+                {/* Additional club details can be added here */}
+              </Link>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   );

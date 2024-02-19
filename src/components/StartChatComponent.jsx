@@ -13,13 +13,15 @@ import {
   serverTimestamp,
 } from "firebase/firestore";
 import { useAuth } from "../hooks/AuthContext";
-
+import defaultProfilePic from "../assets/default-avatar.png";
 const StartChatComponent = ({ clubId }) => {
   const [clubMembers, setClubMembers] = useState([]);
   const [currentChatId, setCurrentChatId] = useState(null);
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
   const { currentUser, nickname } = useAuth();
+  const [selectedMemberId, setSelectedMemberId] = useState(null);
+
   const messagesEndRef = useRef(null);
   useEffect(() => {
     // Fetch all members of the specific club from the 'clubs' collection
@@ -96,93 +98,116 @@ const StartChatComponent = ({ clubId }) => {
     return unsubscribe;
   };
 
-  const sendMessage = async () => {
-    if (!newMessage.trim()) return;
+  const sendMessage = async (e) => {
+    e.preventDefault();
+    if (newMessage.trim() !== "") {
+      const messagesRef = collection(
+        db,
+        "clubs",
+        clubId,
+        "privateChats",
+        currentChatId,
+        "messages"
+      );
 
-    const messagesRef = collection(
-      db,
-      "clubs",
-      clubId,
-      "privateChats",
-      currentChatId,
-      "messages"
-    );
+      await addDoc(messagesRef, {
+        text: newMessage,
+        createdAt: serverTimestamp(),
+        uid: currentUser.uid,
+        nickname: nickname,
+        photoURL: currentUser.photoURL || defaultProfilePic, // Use the currentUser's photoURL or a default if not available
+      });
 
-    await addDoc(messagesRef, {
-      text: newMessage,
-      createdAt: serverTimestamp(), // This will save the timestamp
-      uid: currentUser.uid,
-      nickname: nickname || "Anonymous", // Save the user's nickname
-    });
-
-    setNewMessage(""); // Clear the input field after sending
+      setNewMessage("");
+      scrollToBottom();
+    }
   };
+
   const formatTimestamp = (timestamp) => {
     const date = timestamp.toDate();
     return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   };
   return (
-    <div className="flex w-full max-w-4xl mx-auto my-4 bg-gray-200 rounded-xl shadow-lg">
-      {/* Club Members List */}
-      <div className="w-1/4 p-4 border-r border-gray-300">
-        <h3 className="mb-4 font-semibold">Club Members</h3>
-        <div className="overflow-y-auto h-96">
-          {" "}
-          {/* Adjust height as needed */}
-          {clubMembers.map((member) => (
-            <div
-              key={member.id}
-              className="cursor-pointer p-2 hover:bg-gray-300"
-            >
-              <span onClick={() => startOrGetChat(member.id)}>
-                {member.nickname}
-              </span>
-            </div>
-          ))}
-        </div>
-      </div>
-
+    <div className="flex w-full max-w-md mx-auto my-4 bg-gray-200 rounded-xl shadow-lg">
       {/* Chat Section */}
-      <div className="w-3/4 flex flex-col">
-        <div className="flex-grow overflow-y-auto p-2 h-96">
-          {" "}
-          {/* Fixed height for scrollable area */}
+      <div className="flex-1 flex flex-col">
+        <div
+          className="flex-grow overflow-y-auto p-2"
+          style={{ maxHeight: "400px" }}
+        >
           {messages.map((message) => (
             <div
               key={message.id}
-              className={`p-3 my-2 bg-white rounded-lg shadow ${
+              className={`flex items-center space-x-2 my-2 p-3 rounded-lg shadow ${
                 message.uid === currentUser.uid
-                  ? "ml-auto bg-blue-300"
-                  : "mr-auto"
-              }`}
+                  ? "ml-auto bg-blue-500 text-white" // Right-aligned for current user
+                  : "bg-white" // Left-aligned for others
+              } max-w-xs`}
             >
-              <strong>{message.nickname}</strong>: {message.text}
-              <em className="block text-right text-xs text-gray-600">
-                {message.createdAt ? formatTimestamp(message.createdAt) : "..."}
-              </em>
+              <img
+                src={message.photoURL || defaultProfilePic} // Use message.photoURL or a default image
+                alt="Profile"
+                className="h-6 w-6 rounded-full object-cover" // Smaller profile picture
+              />
+              <div className="flex flex-col flex-grow">
+                <div className="flex justify-between">
+                  <strong className="text-sm">{message.nickname}</strong>{" "}
+                  {/* Smaller text */}
+                  <span className="text-xs text-white-500">
+                    {message.createdAt
+                      ? formatTimestamp(message.createdAt)
+                      : "..."}
+                  </span>
+                </div>
+                <p className="text-sm break-words">{message.text}</p>
+              </div>
             </div>
           ))}
-          <div ref={messagesEndRef} style={{ float: "left", clear: "both" }} />
+          <div ref={messagesEndRef} />
         </div>
         {currentChatId && (
           <div className="p-4 bg-white rounded-b-xl">
-            <div className="flex mt-4">
+            <form onSubmit={sendMessage} className="flex">
               <input
                 value={newMessage}
                 onChange={(e) => setNewMessage(e.target.value)}
                 placeholder="Type a message..."
-                className="flex-grow p-2 border border-gray-300 rounded-l-lg focus:ring-2 focus:ring-blue-300 focus:outline-none"
+                className="flex-1 p-2 border border-gray-300 rounded-l-lg focus:ring-2 focus:ring-blue-300 focus:outline-none"
                 autoComplete="off"
               />
               <button
-                onClick={sendMessage}
+                type="submit"
                 className="px-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold p-2 rounded-r-lg uppercase transition-colors duration-200"
               >
                 Send
               </button>
-            </div>
+            </form>
           </div>
         )}
+      </div>
+
+      {/* Club Members List */}
+      <div className="w-1/5 p-2 border-l border-gray-300">
+        <h3 className="mb-2 text-sm font-semibold">Club Members</h3>
+        <div className="overflow-y-auto" style={{ height: "400px" }}>
+          {clubMembers.map((member) => (
+            <div
+              key={member.id}
+              className={`cursor
+  -pointer p-1 ${
+    member.id === selectedMemberId
+      ? "bg-blue-500 text-white"
+      : "hover:bg-gray-300"
+  }`}
+              onClick={() => {
+                startOrGetChat(member.id);
+                setSelectedMemberId(member.id); // Set the selected member ID
+              }}
+            >
+              {member.nickname}
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );

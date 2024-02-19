@@ -17,6 +17,7 @@ const Navbar = () => {
     try {
       await logout();
       navigate("/register");
+      setDropdownOpen(false);
     } catch (error) {
       console.error("Failed to log out", error);
     }
