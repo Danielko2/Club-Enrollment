@@ -9,6 +9,7 @@ import CreateSessionForm from "../components/CreateSessionForm";
 import PromoteMemberForm from "../components/PromoteMemberForm";
 import SessionEditForm from "../components/SessionEditForm";
 import ChatComponent from "../components/ChatComponent";
+import StartChatComponent from "../components/StartChatComponent";
 const ClubHeader = ({ clubName }) => (
   <div className="text-xl font-bold text-center">{clubName}</div>
 );
@@ -64,6 +65,7 @@ const AdminDashboardPage = () => {
   const [editingSessionIndex, setEditingSessionIndex] = useState(null);
   const [activeTab, setActiveTab] = useState("clubDetails");
   const [selectedSession, setSelectedSession] = useState(null);
+  const [isChatOpen, setIsChatOpen] = useState(false);
   const getPaidParticipantCount = (session) => {
     return session.participants.filter((p) => p.paid).length;
   };
@@ -245,6 +247,7 @@ const AdminDashboardPage = () => {
   const nonAdminMembers = club.members.filter(
     (member) => !adminNicknames.includes(member.nickname)
   );
+  const toggleChat = () => setIsChatOpen(!isChatOpen);
   return (
     <div className="flex h-screen overflow-hidden">
       {/* Enhanced Sidebar */}
@@ -480,6 +483,23 @@ const AdminDashboardPage = () => {
           </>
         )}
         {activeTab === "chat" && <ChatComponent clubId={clubId} />}
+        {/* Start Chat Button */}
+        <button
+          onClick={toggleChat}
+          className={`fixed bottom-4 right-4 bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full shadow-lg focus:outline-none z-50 transition-all ease-in-out ${
+            !isChatOpen ? "animate-bounce" : ""
+          }`}
+        >
+          <span>💬</span>
+        </button>
+        <div
+          className={`${
+            isChatOpen ? "fixed bottom-12 right-4 z-50" : "z-50"
+          } min-w-[500px] min-h-[400px] overflow-auto`}
+        >
+          {/* Start Chat Component */}
+          {isChatOpen && <StartChatComponent clubId={clubId} />}
+        </div>
       </div>
     </div>
   );
