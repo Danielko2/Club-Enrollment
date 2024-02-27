@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { db } from "../config/firebase-config";
 import { doc, updateDoc, arrayUnion } from "firebase/firestore";
 import { v4 as uuidv4 } from "uuid";
-
+import GoogleMapReact from "google-map-react";
 const CreateSessionForm = ({ clubId, onCancel, onSessionCreated }) => {
   const [sessionDetails, setSessionDetails] = useState({
     name: "",
@@ -18,6 +18,10 @@ const CreateSessionForm = ({ clubId, onCancel, onSessionCreated }) => {
   });
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+  const [marker, setMarker] = useState(null);
+  const [mapApi, setMapApi] = useState(null);
+  const [mapInstance, setMapInstance] = useState(null);
+  const MapMarker = ({ text }) => <div>{text}</div>;
 
   const handleLocationTypeChange = (e) => {
     const { value } = e.target;
@@ -34,6 +38,7 @@ const CreateSessionForm = ({ clubId, onCancel, onSessionCreated }) => {
     const newSessionDetails = {
       ...sessionDetails,
       id: uuidv4(), // This generates a unique UUID for each session
+      marker: marker, // Include the marker data in the session details
       fee: parseFloat(sessionDetails.fee).toFixed(2), // Format the fee to two decimal places
     };
     try {
@@ -78,6 +83,24 @@ const CreateSessionForm = ({ clubId, onCancel, onSessionCreated }) => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setSessionDetails((prevDetails) => ({ ...prevDetails, [name]: value }));
+  };
+  const handleApiLoaded = ({ map, maps }) => {
+    setMapApi(maps);
+    setMapInstance(map);
+    // You can use map and maps objects here, for example to add markers
+  };
+  const handleMapClick = ({ lat, lng }) => {
+    const name = prompt("Enter name for the marker:");
+    if (name) {
+      console.log("Marker added:", { lat, lng, name });
+      const newMarker = { lat, lng, name };
+      setMarker(newMarker); // Update the marker with the new location
+      new mapApi.Marker({
+        position: { lat, lng },
+        map: mapInstance,
+        title: name,
+      });
+    }
   };
 
   return (
@@ -175,6 +198,26 @@ const CreateSessionForm = ({ clubId, onCancel, onSessionCreated }) => {
               className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
               placeholder="Enter location address"
             />
+            <div style={{ height: "400px", width: "100%" }}>
+              <GoogleMapReact
+                bootstrapURLKeys={{
+                  key: "AIzaSyA6L3TeotodM-MldE9-l16zvbGGbnyEFTo",
+                }}
+                defaultCenter={{ lat: 53.7676, lng: -0.3275 }}
+                defaultZoom={11}
+                onClick={handleMapClick}
+                onGoogleApiLoaded={handleApiLoaded}
+                yesIWantToUseGoogleMapApiInternals
+              >
+                {marker && (
+                  <MapMarker
+                    lat={marker.lat}
+                    lng={marker.lng}
+                    text={marker.name} // Display the marker name
+                  />
+                )}
+              </GoogleMapReact>
+            </div>
           </div>
         ) : (
           <div>

@@ -2,6 +2,7 @@ import React from "react";
 import { auth } from "../config/firebase-config";
 import PayPalComponent from "../components/PayPalComponent"; // Import the PayPalComponent
 import { useState } from "react";
+import GoogleMapReact from "google-map-react";
 const SessionDisplay = ({
   session,
   onClose,
@@ -24,6 +25,52 @@ const SessionDisplay = ({
     setUserHasPaid(true); // Update the local state to reflect that the user has paid
   };
   const [userHasPaid, setUserHasPaid] = useState(isPaid);
+
+  const SessionLocationMap = ({ sessionDetails }) => {
+    const createMapOptions = (maps) => {
+      return {
+        disableDefaultUI: false,
+        mapTypeControl: true,
+        streetViewControl: true,
+        styles: [
+          {
+            featureType: "poi",
+            elementType: "labels",
+            stylers: [{ visibility: "on" }],
+          },
+        ],
+      };
+    };
+
+    const handleApiLoaded = ({ map, maps }) => {
+      // Use maps.Marker to create a marker on the map
+      new maps.Marker({
+        position: {
+          lat: sessionDetails.marker.lat,
+          lng: sessionDetails.marker.lng,
+        },
+        map: map,
+        title: sessionDetails.marker.name,
+      });
+    };
+
+    return (
+      <div style={{ height: "400px", width: "100%" }}>
+        <GoogleMapReact
+          bootstrapURLKeys={{ key: "AIzaSyA6L3TeotodM-MldE9-l16zvbGGbnyEFTo" }} // Replace with your actual API key
+          defaultCenter={{
+            lat: sessionDetails.marker.lat,
+            lng: sessionDetails.marker.lng,
+          }}
+          defaultZoom={11}
+          options={createMapOptions}
+          yesIWantToUseGoogleMapApiInternals
+          onGoogleApiLoaded={handleApiLoaded}
+        />
+      </div>
+    );
+  };
+
   return (
     <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 z-10 flex justify-center items-center">
       <div className="bg-white p-6 rounded-lg shadow-lg m-4 max-w-xl w-full relative">
@@ -78,6 +125,7 @@ const SessionDisplay = ({
               sessionId={session.id}
               onPaymentSuccess={handlePaymentSuccess}
             />
+            <SessionLocationMap sessionDetails={session} />
             <button
               onClick={() => onLeave(session)}
               className="mt-4 bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded "

@@ -12,14 +12,27 @@ const CalendarView = ({ sessions, onEventClick, currentUser }) => {
         const isUserJoined = session.participants.some(
           (participant) => participant.uid === currentUser?.uid
         );
+        const isUserPaid = session.participants.some(
+          (participant) =>
+            participant.uid === currentUser?.uid && participant.paid
+        );
+
+        let sessionTitle = session.name;
+        let backgroundColor = "#60A5FA"; // Default blue color for all events
+
+        if (isUserJoined) {
+          backgroundColor = "#34D399"; // Green color when joined
+          sessionTitle += isUserPaid ? " - Paid" : " - Not Paid"; // Add "Paid" or "Not Paid" only if joined
+        }
 
         return {
-          title: session.name + (session.time ? ` - ${session.time}` : ""),
+          title: sessionTitle + (session.time ? ` - ${session.time}` : ""),
           start: dateTime,
-          backgroundColor: isUserJoined ? "#34D399" : "#60A5FA",
-          borderColor: isUserJoined ? "#059669" : "#3B82F6",
+          backgroundColor: backgroundColor,
+          borderColor: "#3B82F6", // Default border color for all events
           extendedProps: {
             ...session,
+            isUserPaid,
           },
         };
       })
