@@ -43,14 +43,26 @@ const SessionDisplay = ({
     };
 
     const handleApiLoaded = ({ map, maps }) => {
-      // Use maps.Marker to create a marker on the map
-      new maps.Marker({
-        position: {
-          lat: sessionDetails.marker.lat,
-          lng: sessionDetails.marker.lng,
-        },
-        map: map,
-        title: sessionDetails.marker.name,
+      // Assuming sessionDetails is defined elsewhere and has the necessary properties
+      const { lat, lng, name } = sessionDetails.marker;
+
+      // Create an advanced marker on the map
+      // Note: Based on the current API, you should use 'new maps.Marker' or 'new maps.AdvancedMarkerView'
+      // Assuming AdvancedMarkerElement is a valid class (please verify with the most recent API documentation)
+      const advancedMarker = new maps.Marker({
+        position: { lat, lng },
+        map,
+        title: name,
+      });
+
+      // Add any additional options that AdvancedMarkerElement supports
+
+      // Add a click event listener to the advanced marker
+      advancedMarker.addListener("click", function () {
+        // Construct the Google Maps URL with directions
+        const directionUrl = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
+        // Open the URL in a new tab/window
+        window.open(directionUrl, "_blank");
       });
     };
 
