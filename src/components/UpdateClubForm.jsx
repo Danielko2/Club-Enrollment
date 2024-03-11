@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-
+import LocationAutocomplete from "./LocationAutocomplete";
 const UpdateClubForm = ({ clubDetails, onUpdate }) => {
   const [description, setDescription] = useState(clubDetails.description || "");
   const [location, setLocation] = useState(clubDetails.location || "");
@@ -15,7 +15,9 @@ const UpdateClubForm = ({ clubDetails, onUpdate }) => {
       meetingType,
     });
   };
-
+  const handleLocationSelect = (place) => {
+    setLocation(place.formatted_address); // Use formatted_address or any other place property you need
+  };
   return (
     <form
       onSubmit={handleSubmit}
@@ -43,12 +45,10 @@ const UpdateClubForm = ({ clubDetails, onUpdate }) => {
         >
           Location:
         </label>
-        <input
-          id="location"
-          type="text"
-          className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-          value={location}
-          onChange={(e) => setLocation(e.target.value)}
+        {/* Replace the input field with the LocationAutocomplete component */}
+        <LocationAutocomplete
+          onLocationSelect={handleLocationSelect}
+          defaultValue={location}
         />
       </div>
       <div className="mb-4">

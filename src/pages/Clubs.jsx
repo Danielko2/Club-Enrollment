@@ -4,16 +4,31 @@ import { db } from "../config/firebase-config"; // Ensure you have a firebase.js
 import ClubForm from "../components/ClubForm";
 import { Link } from "react-router-dom";
 import { useAuth } from "../hooks/AuthContext";
+import SearchClubsByLocation from "../components/SearchClubsByLocation";
 const Clubs = () => {
   const [clubs, setClubs] = useState([]);
   // const [newClubName, setNewClubName] = useState("");
   const [loginPrompt, setLoginPrompt] = useState("");
   const [showModal, setShowModal] = useState(false);
   const { currentUser } = useAuth();
+  const [selectedPlace, setSelectedPlace] = useState(null);
+  const isSearchActive = selectedPlace !== null;
+
+  const clearSearch = () => {
+    setSelectedPlace(null);
+  };
+
   // Function to open the modal
   const openModal = () => {
     setShowModal(true);
   };
+  const filteredClubs = selectedPlace
+    ? clubs.filter((club) => {
+        const clubLocationLower = club.location.toLowerCase();
+        const placeNameLower = selectedPlace.name.toLowerCase();
+        return clubLocationLower.includes(placeNameLower);
+      })
+    : clubs;
 
   // Function to close the modal
   const closeModal = () => {
@@ -44,9 +59,18 @@ const Clubs = () => {
     // Clean up subscription on unmount
     return () => unsubscribe();
   }, []);
-
+  const onLocationSelected = (place) => {
+    // You might want to use place.name or another identifier, based on your use case
+    setSelectedPlace(place);
+  };
+  const clubsToDisplay = isSearchActive ? filteredClubs : clubs;
+  console.log(clubsToDisplay);
   return (
     <div className="container mx-auto p-6 text-center">
+      <SearchClubsByLocation
+        onLocationSelected={onLocationSelected}
+        onClearSearch={clearSearch}
+      />
       <button
         onClick={handleAddClubClick}
         className="mb-4 inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
@@ -96,13 +120,15 @@ const Clubs = () => {
         </div>
       )}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {clubs.map((club) => (
+        {/* Map over clubsToDisplay instead of clubs */}
+        {clubsToDisplay.map((club) => (
           <Link
             key={club.id}
             to={`/club-dashboard/${club.id}`}
             className="flex flex-col justify-between p-6 bg-white rounded-lg border border-gray-200 shadow hover:shadow-lg transition-shadow duration-300"
           >
             <h5 className="text-xl font-bold text-gray-900">{club.name}</h5>
+            <h5 className="text-xl font-bold text-gray-900">{club.location}</h5>
             {/* You can add additional club details here */}
           </Link>
         ))}

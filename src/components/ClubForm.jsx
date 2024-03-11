@@ -1,13 +1,19 @@
 // components/ClubForm.js
-import React, { useState } from "react";
+import React, { useState, useRef, useMemo } from "react";
 import { addDoc, collection } from "firebase/firestore";
 import { db } from "../config/firebase-config";
 import { useAuth } from "../hooks/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { doc, getDoc } from "firebase/firestore";
+import LocationAutocomplete from "./LocationAutocomplete";
+
 const ClubForm = ({ closeModal }) => {
   const { currentUser } = useAuth();
   const navigate = useNavigate();
+
+  const [location, setLocation] = useState("");
+
+  const libraries = useMemo(() => ["places"], []);
   const [clubDetails, setClubDetails] = useState({
     name: "",
     description: "",
@@ -38,7 +44,7 @@ const ClubForm = ({ closeModal }) => {
       const clubData = {
         ...clubDetails,
         adminNickname: [userNickname], // Set the adminNickname to the user's nickname
-
+        location,
         joiningMethod: "open", // Set the joining method to 'open' by default
         members: [
           {
@@ -55,7 +61,12 @@ const ClubForm = ({ closeModal }) => {
       console.error("Error adding club or fetching user nickname: ", error);
     }
   };
-
+  const handleLocationSelect = (place) => {
+    // Do something with the selected place object
+    // For example, setting the location in state
+    setLocation(place.formatted_address);
+    console.log(place);
+  };
   return (
     <form onSubmit={handleSubmit} className="p-4 space-y-4">
       <input
@@ -66,6 +77,7 @@ const ClubForm = ({ closeModal }) => {
         placeholder="Club Name"
         className="border-2 p-2 w-full rounded"
       />
+      <LocationAutocomplete onLocationSelect={handleLocationSelect} />
       {/* <textarea
         name="description"
         value={clubDetails.description}

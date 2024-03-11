@@ -43,12 +43,11 @@ const SessionDisplay = ({
     };
 
     const handleApiLoaded = ({ map, maps }) => {
-      // Assuming sessionDetails is defined elsewhere and has the necessary properties
       const { lat, lng, name } = sessionDetails.marker;
 
       // Create an advanced marker on the map
       // Note: Based on the current API, you should use 'new maps.Marker' or 'new maps.AdvancedMarkerView'
-      // Assuming AdvancedMarkerElement is a valid class (please verify with the most recent API documentation)
+
       const advancedMarker = new maps.Marker({
         position: { lat, lng },
         map,
@@ -69,7 +68,7 @@ const SessionDisplay = ({
     return (
       <div style={{ height: "400px", width: "100%" }}>
         <GoogleMapReact
-          bootstrapURLKeys={{ key: "AIzaSyA6L3TeotodM-MldE9-l16zvbGGbnyEFTo" }} // Replace with your actual API key
+          bootstrapURLKeys={{ key: "AIzaSyA6L3TeotodM-MldE9-l16zvbGGbnyEFTo" }}
           defaultCenter={{
             lat: sessionDetails.marker.lat,
             lng: sessionDetails.marker.lng,
