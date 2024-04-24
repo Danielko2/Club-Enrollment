@@ -60,7 +60,6 @@ const Clubs = () => {
     return () => unsubscribe();
   }, []);
   const onLocationSelected = (place) => {
-    // You might want to use place.name or another identifier, based on your use case
     setSelectedPlace(place);
   };
   const clubsToDisplay = isSearchActive ? filteredClubs : clubs;

@@ -57,15 +57,7 @@ const Navbar = () => {
                 Clubs
               </a>
             </li>
-            <li>
-              <a
-                href="/contact"
-                className="text-gray-700 hover:text-gray-300 transition-colors duration-200 flex items-center"
-              >
-                <img src={Pigeon} alt="Contact" className="h-5 w-5 mr-2" />{" "}
-                Contact
-              </a>
-            </li>
+
             <li>
               <a
                 href="/register"
