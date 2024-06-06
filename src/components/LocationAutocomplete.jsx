@@ -9,7 +9,7 @@ const LocationAutocomplete = ({ onLocationSelect, defaultValue }) => {
   const [inputValue, setInputValue] = useState(defaultValue || "");
 
   const { isLoaded, loadError } = useLoadScript({
-    googleMapsApiKey: "AIzaSyA6L3TeotodM-MldE9-l16zvbGGbnyEFTo", // Replace with your actual API key
+    googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
     libraries,
   });
 
