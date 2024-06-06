@@ -68,7 +68,9 @@ const SessionDisplay = ({
     return (
       <div style={{ height: "400px", width: "100%" }}>
         <GoogleMapReact
-          bootstrapURLKeys={{ key: "AIzaSyA6L3TeotodM-MldE9-l16zvbGGbnyEFTo" }}
+          bootstrapURLKeys={{
+            key: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
+          }}
           defaultCenter={{
             lat: sessionDetails.marker.lat,
             lng: sessionDetails.marker.lng,

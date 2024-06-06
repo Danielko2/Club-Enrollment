@@ -202,7 +202,7 @@ const CreateSessionForm = ({ clubId, onCancel, onSessionCreated }) => {
             <div style={{ height: "400px", width: "100%" }}>
               <GoogleMapReact
                 bootstrapURLKeys={{
-                  key: "AIzaSyA6L3TeotodM-MldE9-l16zvbGGbnyEFTo",
+                  key: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
                 }}
                 defaultCenter={{ lat: 53.7676, lng: -0.3275 }}
                 defaultZoom={11}
