@@ -151,6 +151,7 @@ const SessionDisplay = ({
             <div className="text-green-500">
               You have paid for this session. Thank you!
             </div>
+            <SessionLocationMap sessionDetails={session} />
             <button
               onClick={() => onLeave(session)}
               className="mt-4 bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"

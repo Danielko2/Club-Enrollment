@@ -16,6 +16,7 @@ const CreateSessionForm = ({ clubId, onCancel, onSessionCreated }) => {
 
     fee: "", // added field for fee
   });
+
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [marker, setMarker] = useState(null);
