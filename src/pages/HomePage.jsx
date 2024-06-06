@@ -3,7 +3,7 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 //import Navbar from "../components/Navbar";
 import HowItWorks from "../components/HowItWorks";
-import backgroundImage from "../assets/smok.png";
+
 const HomePage = () => {
   const navigate = useNavigate();
 

@@ -5,8 +5,35 @@ import dayGridPlugin from "@fullcalendar/daygrid";
 const CalendarView = ({ sessions, onEventClick, currentUser }) => {
   const [sortedSessions, setSortedSessions] = useState([]);
 
+  const [filter, setFilter] = useState("");
+  // Handle changes to the filter checkboxes
+  const handleFilterChange = (filterName) => {
+    // If the filter is already set, clear it. Otherwise, set the new filter.
+    setFilter((prevFilter) => (prevFilter === filterName ? "" : filterName));
+  };
+
+  // Clear all filters
+  const clearFilters = () => {
+    setFilter("");
+  };
   useEffect(() => {
-    const transformedSessions = sessions
+    let filteredSessions = sessions;
+
+    // Apply filter based on the selected filter value
+    if (filter === "isParticipant") {
+      filteredSessions = filteredSessions.filter((session) =>
+        session.participants.some((p) => p.uid === currentUser?.uid)
+      );
+    } else if (filter === "isPaid") {
+      filteredSessions = filteredSessions.filter((session) =>
+        session.participants.some((p) => p.uid === currentUser?.uid && p.paid)
+      );
+    } else if (filter === "notPaid") {
+      filteredSessions = filteredSessions.filter((session) =>
+        session.participants.some((p) => p.uid === currentUser?.uid && !p.paid)
+      );
+    }
+    const transformedSessions = filteredSessions
       .map((session) => {
         const dateTime = `${session.date}T${session.time}:00`;
         const isUserJoined = session.participants.some(
@@ -39,7 +66,7 @@ const CalendarView = ({ sessions, onEventClick, currentUser }) => {
       .sort((a, b) => new Date(a.start) - new Date(b.start));
     console.log(transformedSessions);
     setSortedSessions(transformedSessions);
-  }, [sessions, currentUser]); // Dependencies array to update when sessions or currentUser changes
+  }, [sessions, currentUser, filter]); // Dependencies array to update when sessions or currentUser changes
 
   const renderEventContent = (eventInfo) => {
     return (
@@ -64,6 +91,42 @@ const CalendarView = ({ sessions, onEventClick, currentUser }) => {
 
   return (
     <div className="p-4">
+      <div className="flex space-x-4 mb-4">
+        {/* Filter UI elements */}
+        {/* Updated to use filter state */}
+        <label className="flex items-center space-x-2">
+          <input
+            type="checkbox"
+            checked={filter === "isParticipant"}
+            onChange={() => handleFilterChange("isParticipant")}
+          />
+          <span>Participant</span>
+        </label>
+
+        <label className="flex items-center space-x-2">
+          <input
+            type="checkbox"
+            checked={filter === "isPaid"}
+            onChange={() => handleFilterChange("isPaid")}
+          />
+          <span>Paid</span>
+        </label>
+
+        <label className="flex items-center space-x-2">
+          <input
+            type="checkbox"
+            checked={filter === "notPaid"}
+            onChange={() => handleFilterChange("notPaid")}
+          />
+          <span>Not Paid</span>
+        </label>
+
+        {/* Clear Filters Button */}
+        <button onClick={clearFilters} className="px-4 py-2 border rounded">
+          Clear Filters
+        </button>
+      </div>
+
       <FullCalendar
         plugins={[dayGridPlugin]}
         initialView="dayGridMonth"
