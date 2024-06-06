@@ -8,7 +8,7 @@ const libraries = ["places"]; // This array is static and defined outside the co
 const SearchClubsByLocation = ({ onLocationSelected, onClearSearch }) => {
   const [autocomplete, setAutocomplete] = useState(null);
   const { isLoaded } = useLoadScript({
-    googleMapsApiKey: "AIzaSyA6L3TeotodM-MldE9-l16zvbGGbnyEFTo",
+    googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
     libraries,
   });
   const [inputValue, setInputValue] = useState("");
